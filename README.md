@@ -20,8 +20,18 @@ The location centers and search radii are configured in `worker.mjs`: Biebrzańs
 
 The page uses recent reports from the previous 30 days and currently includes Polish translations for a curated set of common species. Species without a translation are not offered in the game; add their English common name and Polish name to the `polishNames` map in `index.html`. The selected location needs at least five supported species in recent reports to start a round.
 
+On a phone, use Connect by tapping a Polish name and then its English translation; dragging is optional.
+
 In Starter show, the game looks up a photo by scientific name through Wikipedia and Wikimedia Commons after revealing the translation. A credit and license link appear with the photo. The photo illustrates the species and is not necessarily from the selected location; if a photo or its credit information is unavailable, the game continues without it.
+
+In Type it in, answers are case-insensitive. A single missing, extra, substituted, or swapped adjacent character is marked “Almost”; only exact answers count as correct. **Show letter** reveals one letter at a time in a separate hint without affecting the score.
+
+In Pick a translation, the other choices preferentially come from the correct bird's family, including known birds not recently reported at the selected location. If there are not enough, other birds fill the remaining choices.
+
+After a multiple-choice, Connect, or typing round with mistakes, **Fix mistakes** starts a new round containing only the missed birds. In Connect, a mismatched Polish name is recorded even if it is later matched correctly; in typing, “Almost” also counts as a mistake. Each practice round has its own score and can be retried again if needed.
+
+After a round, **Keep playing** continues the same difficulty without a limit, drawing from the selected location's birds. Connect continues in groups of five pairs. During continuous play, **Fix mistakes** pauses the current game for a practice round and then resumes it; birds missed again remain available for further practice. **Start over** clears the score and mistakes and begins a new continuous session.
 
 ## Tests
 
-Run the Worker and photo lookup tests with `node --test tests/*.test.mjs`. They use Node's built-in test runner and do not require external packages.
+Run the Worker and game tests with `node --test tests/*.test.mjs`. They use Node's built-in test runner and do not require external packages.

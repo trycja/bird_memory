@@ -10,6 +10,7 @@
       font-family: system-ui, sans-serif;
       color: #e6eee8;
       background: #111915;
+      scrollbar-gutter: stable;
     }
     * { box-sizing: border-box; }
     body { margin: 0; padding: 2rem 1rem; }
@@ -19,8 +20,8 @@
     h2 { margin: 0; font-size: 1.35rem; }
     .subtitle { color: #a7b8ab; line-height: 1.5; }
     .location-controls { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: .75rem; margin: 1rem 0 .5rem; }
-    .location-field { display: grid; gap: .35rem; font-weight: 700; }
-    select { min-height: 2.8rem; padding: .5rem; border: 2px solid #506e59; border-radius: .5rem; background: #202b24; color: #e6eee8; font: inherit; }
+    .location-field { display: grid; min-width: 0; gap: .35rem; font-weight: 700; }
+    select { width: 100%; min-width: 0; min-height: 44px; padding: .5rem; border: 2px solid #506e59; border-radius: .5rem; background: #202b24; color: #e6eee8; font: inherit; font-size: 1rem; text-overflow: ellipsis; }
     #location-status { min-height: 1.5em; color: #9cc9a5; }
     .attribution { color: #a7b8ab; text-align: center; font-size: .85rem; }
     a { color: #a7d6b1; }
@@ -31,8 +32,8 @@
       font: inherit;
       font-weight: 700;
     }
-    button { cursor: pointer; }
-    button:focus-visible, input:focus-visible {
+    button { min-height: 44px; cursor: pointer; touch-action: manipulation; }
+    button:focus-visible, input:focus-visible, select:focus-visible {
       outline: 3px solid #f0bf62;
       outline-offset: 3px;
     }
@@ -42,8 +43,32 @@
       color: #f4f8f4;
     }
     .difficulty { text-align: left; }
-    .difficulty:hover, .primary:hover { background: #356a49; }
+    .difficulty:hover, .primary:not(:disabled):hover { background: #356a49; }
+    .primary:disabled { opacity: .6; cursor: not-allowed; }
     .difficulty span { display: block; margin-top: .2rem; font-weight: 400; }
+    #game { padding-bottom: calc(13rem + env(safe-area-inset-bottom)); }
+    #fixed-controls {
+      position: fixed;
+      left: max(.75rem, env(safe-area-inset-left));
+      right: max(.75rem, env(safe-area-inset-right));
+      bottom: calc(.75rem + env(safe-area-inset-bottom));
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: .75rem;
+      pointer-events: none;
+    }
+    #controls, #continuous-actions:not(.hidden) {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: .75rem;
+      max-width: 100%;
+    }
+    #fixed-controls button { pointer-events: auto; }
+    #controls .starter-nav { min-width: 8.5rem; }
+    .reserved-button { visibility: hidden; }
     .toolbar {
       display: flex;
       align-items: center;
@@ -57,12 +82,14 @@
       background: #202b24;
       color: #e6eee8;
     }
-    .secondary:hover, .answer:hover, .connect-item:hover { background: #2b3b30; }
+    .secondary:disabled { opacity: .6; cursor: not-allowed; }
+    .secondary:not(:disabled):hover, .answer:hover, .connect-item:hover { background: #2b3b30; }
     .prompt {
       margin: 1.5rem 0;
       text-align: center;
       font-size: clamp(1.5rem, 5vw, 2rem);
       font-weight: 700;
+      overflow-wrap: anywhere;
     }
     .bird-photo { margin: 1rem auto; max-width: 500px; text-align: center; }
     .bird-photo img { display: block; max-width: 100%; max-height: 350px; margin: auto; border-radius: .65rem; }
@@ -74,24 +101,32 @@
       border: 2px solid #506e59;
       background: #202b24;
       color: #e6eee8;
+      overflow-wrap: anywhere;
     }
     .answer:disabled { cursor: default; opacity: 1; }
     .answer.correct, .connect-item.matched { background: #23442d; border-color: #6ca677; }
     .answer.incorrect { background: #4a2b29; border-color: #bd766c; }
-    .connect-columns { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
-    .connect-list { display: grid; align-content: start; gap: .55rem; }
-    .connect-item { width: 100%; border: 2px solid #506e59; background: #202b24; color: #e6eee8; }
+    .connect-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; }
+    .connect-list { display: grid; min-width: 0; align-content: start; gap: .55rem; }
+    .connect-item { width: 100%; border: 2px solid #506e59; background: #202b24; color: #e6eee8; overflow-wrap: anywhere; }
     .connect-item[aria-pressed="true"] { outline: 3px solid #f0bf62; outline-offset: 2px; }
     .connect-item.matched { cursor: default; }
-    input { min-height: 2.8rem; padding: .5rem; border: 2px solid #506e59; border-radius: .5rem; background: #202b24; color: #e6eee8; font: inherit; }
+    .typing-form { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: .5rem; }
+    input { width: 100%; min-width: 0; min-height: 44px; padding: .5rem; border: 2px solid #506e59; border-radius: .5rem; background: #202b24; color: #e6eee8; font: inherit; font-size: 1rem; }
+    .typing-hint { white-space: pre-wrap; overflow-wrap: anywhere; color: #f0bf62; }
     #message { min-height: 1.5em; text-align: center; font-weight: 700; color: #9cc9a5; }
+    #message.correct { color: #9ee2a6; }
+    #message.almost { color: #f0bf62; }
+    #message.wrong { color: #ffaaa1; }
     .hidden { display: none; }
-    @media (max-width: 420px) {
+    @media (max-width: 600px) {
       body { padding: 1.25rem .75rem; }
       .location-controls { grid-template-columns: 1fr; }
       .answers { grid-template-columns: 1fr; }
       .connect-columns { gap: .45rem; }
       .connect-item { padding: .65rem .45rem; }
+      .typing-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .typing-form input { grid-column: 1 / -1; }
     }
   </style>
 </head>
@@ -132,7 +167,10 @@
       <p id="progress"></p>
       <div id="activity"></div>
       <p id="message" role="status" aria-live="polite"></p>
-      <div id="controls"></div>
+      <div id="fixed-controls">
+        <div id="controls"></div>
+        <div id="continuous-actions" class="hidden"></div>
+      </div>
     </section>
   </main>
   <script>
@@ -202,6 +240,40 @@
       ["Common Raven", "Kruk"],
       ["Yellowhammer", "Trznadel"]
     ]);
+    const birdFamilies = [
+      ["Barn Swallow", "Common House-Martin", "House Martin"],
+      ["Black-headed Gull", "Common Gull", "Herring Gull", "Common Tern"],
+      ["Common Blackbird", "Fieldfare", "Redwing", "Song Thrush"],
+      ["Common Buzzard", "Eurasian Sparrowhawk", "White-tailed Eagle"],
+      ["Common Chaffinch", "Common Linnet", "European Greenfinch", "European Goldfinch"],
+      ["Common Chiffchaff"],
+      ["Common Crane"],
+      ["Common Cuckoo"],
+      ["Common Kestrel"],
+      ["Common Moorhen", "Eurasian Coot"],
+      ["Common Pheasant"],
+      ["Common Reed Bunting", "Yellowhammer"],
+      ["Common Snipe"],
+      ["Common Starling"],
+      ["Common Swift"],
+      ["Common Teal", "Eurasian Wigeon", "Graylag Goose", "Mallard", "Common Pochard", "Mute Swan", "Northern Shoveler"],
+      ["Common Wood Pigeon", "Common Wood-Pigeon", "Eurasian Collared-Dove"],
+      ["Eurasian Blackcap"],
+      ["Eurasian Blue Tit", "Great Tit"],
+      ["Eurasian Jackdaw", "Eurasian Jay", "Eurasian Magpie", "Hooded Crow", "Common Raven"],
+      ["Eurasian Nuthatch"],
+      ["Eurasian Treecreeper"],
+      ["Eurasian Tree Sparrow", "House Sparrow"],
+      ["Eurasian Wren"],
+      ["European Robin"],
+      ["Great Cormorant"],
+      ["Great Crested Grebe", "Little Grebe"],
+      ["Great Egret", "Gray Heron"],
+      ["Great Spotted Woodpecker"],
+      ["Northern Lapwing"],
+      ["White Stork"],
+      ["White Wagtail"]
+    ];
     const modes = [
       "0 — Starter show",
       "1 — Pick a translation",
@@ -217,6 +289,7 @@
     const activity = document.getElementById("activity");
     const message = document.getElementById("message");
     const controls = document.getElementById("controls");
+    const continuousActions = document.getElementById("continuous-actions");
     const locationSelect = document.getElementById("location-select");
     const locationStatus = document.getElementById("location-status");
     const loadLocationButton = document.getElementById("load-location");
@@ -227,6 +300,11 @@
     let answered = false;
     let selectedSource = null;
     let matched = new Set();
+    let mistakes = new Set();
+    let continuous = false;
+    let practicing = false;
+    let completedBirds = 0;
+    let pausedGame = null;
 
     function shuffle(items) {
       const shuffled = [...items];
@@ -294,36 +372,117 @@
 
     function startMode(selectedMode) {
       mode = selectedMode;
+      continuous = false;
+      practicing = false;
+      completedBirds = 0;
+      pausedGame = null;
+      modeTitle.textContent = modes[mode];
+      home.classList.add("hidden");
+      game.classList.remove("hidden");
+      startRound(shuffle(birds).slice(0, 5));
+    }
+
+    function inContinuousPlay() {
+      return continuous && !practicing;
+    }
+
+    function updateContinuousActions() {
+      continuousActions.replaceChildren();
+      continuousActions.classList.toggle("hidden", !inContinuousPlay());
+      if (!inContinuousPlay()) return;
+      const fixButton = makeButton("Fix mistakes", "secondary", startPractice);
+      fixButton.disabled = mistakes.size === 0;
+      continuousActions.append(fixButton, makeButton("Start over", "secondary", restartContinuous));
+    }
+
+    function keepPlaying() {
+      continuous = true;
+      completedBirds = round.length;
       round = shuffle(birds).slice(0, 5);
+      index = 0;
+      matched = new Set();
+      selectedSource = null;
+      renderQuestion();
+    }
+
+    function restartContinuous() {
+      completedBirds = 0;
+      startRound(shuffle(birds).slice(0, 5));
+    }
+
+    function startPractice() {
+      if (!mistakes.size) return;
+      pausedGame = {
+        round, index, correctCount, answered, selectedSource, matched,
+        activityNodes: [...activity.childNodes],
+        controlNodes: [...controls.childNodes],
+        progressText: progress.textContent,
+        messageText: message.textContent,
+        messageClass: message.className
+      };
+      practicing = true;
+      startRound(shuffle([...mistakes]));
+    }
+
+    function resumeContinuous() {
+      const remainingMistakes = mistakes;
+      ({ round, index, correctCount, answered, selectedSource, matched } = pausedGame);
+      activity.replaceChildren(...pausedGame.activityNodes);
+      controls.replaceChildren(...pausedGame.controlNodes);
+      progress.textContent = pausedGame.progressText;
+      message.className = pausedGame.messageClass;
+      message.textContent = `Practice complete. ${pausedGame.messageText}`.trim();
+      mistakes = remainingMistakes;
+      practicing = false;
+      pausedGame = null;
+      updateContinuousActions();
+    }
+
+    function startRound(roundBirds) {
+      round = roundBirds;
       index = 0;
       correctCount = 0;
       answered = false;
       selectedSource = null;
       matched = new Set();
-      modeTitle.textContent = modes[mode];
-      home.classList.add("hidden");
-      game.classList.remove("hidden");
+      mistakes = new Set();
       renderQuestion();
     }
 
     function updateProgress() {
       progress.textContent = mode === 2
-        ? `Matched ${matched.size} of ${round.length} pairs`
-        : `Bird ${index + 1} of ${round.length} · Correct: ${correctCount}`;
+        ? `Matched ${matched.size} of ${round.length} pairs${inContinuousPlay() ? ` · Total correct: ${correctCount}` : ""}`
+        : inContinuousPlay()
+          ? `Bird ${completedBirds + 1} · Correct: ${correctCount}`
+          : `Bird ${index + 1} of ${round.length} · Correct: ${correctCount}`;
     }
 
     function finishRound() {
+      if (practicing) {
+        resumeContinuous();
+        return;
+      }
       activity.replaceChildren();
       progress.textContent = `Round complete · Correct: ${correctCount} of ${round.length}`;
-      message.textContent = "Great work! Choose another difficulty to play again.";
-      controls.replaceChildren(makeButton("Choose difficulty", "primary", showHome));
+      message.classList.remove("correct", "almost", "wrong");
+      message.textContent = mistakes.size
+        ? `Practice the ${mistakes.size} ${mistakes.size === 1 ? "bird" : "birds"} you missed, keep playing, or choose another difficulty.`
+        : "Great work! Keep playing or choose another difficulty.";
+      controls.replaceChildren();
+      if (mistakes.size) {
+        controls.append(makeButton("Fix mistakes", "primary", () => startRound(shuffle([...mistakes]))));
+      }
+      controls.append(makeButton("Keep playing", "primary", keepPlaying));
+      controls.append(makeButton("Choose difficulty", "primary", showHome));
     }
 
     function renderQuestion() {
       activity.replaceChildren();
       controls.replaceChildren();
+      message.classList.remove("correct", "almost", "wrong");
       message.textContent = "";
       answered = false;
+      updateContinuousActions();
       updateProgress();
       if (mode === 0) renderShow();
       if (mode === 1) renderChoice();
@@ -414,7 +573,20 @@
       prompt.lang = "pl";
       prompt.textContent = bird.pl;
       activity.append(prompt);
-      controls.append(makeButton("Show English", "primary", () => {
+      function setStarterControls(button, showFinish) {
+        button.classList.add("starter-nav");
+        if (inContinuousPlay()) {
+          controls.replaceChildren(button);
+          return;
+        }
+        const finishButton = makeButton("Finish round", "primary", nextQuestion);
+        if (!showFinish) {
+          finishButton.classList.add("reserved-button");
+          finishButton.disabled = true;
+        }
+        controls.replaceChildren(button, finishButton);
+      }
+      setStarterControls(makeButton("Show English", "primary", () => {
         if (answered) return;
         answered = true;
         const answer = document.createElement("p");
@@ -430,12 +602,32 @@
         showBirdPhoto(bird, photo);
         correctCount++;
         message.textContent = "Translation revealed.";
-        controls.replaceChildren(makeButton(
-          index === round.length - 1 ? "Finish round" : "Next bird",
-          "primary",
-          nextQuestion
-        ));
-      }));
+        const nextButton = makeButton("Next bird", "primary", nextQuestion);
+        if (!inContinuousPlay() && index === round.length - 1) {
+          nextButton.disabled = true;
+        }
+        setStarterControls(nextButton, index === round.length - 1);
+      }), false);
+    }
+
+    function choiceOptions(bird) {
+      const family = birdFamilies.find(members => members.includes(bird.en));
+      if (!family) throw new Error(`Missing bird family for ${bird.en}.`);
+      const candidates = [
+        ...shuffle(birds.filter(item => family.includes(item.en))),
+        ...shuffle(family.map(en => ({ en, pl: polishNames.get(en) }))),
+        ...shuffle(birds),
+        ...shuffle([...polishNames].map(([en, pl]) => ({ en, pl })))
+      ];
+      const seen = new Set([bird.pl]);
+      const alternatives = [];
+      for (const candidate of candidates) {
+        if (!candidate.pl || seen.has(candidate.pl)) continue;
+        seen.add(candidate.pl);
+        alternatives.push(candidate);
+        if (alternatives.length === 3) break;
+      }
+      return shuffle([bird, ...alternatives]);
     }
 
     function renderChoice() {
@@ -445,7 +637,7 @@
       prompt.lang = "pl";
       prompt.textContent = bird.pl;
       activity.append(prompt);
-      const options = shuffle([bird, ...shuffle(birds.filter(item => item !== bird)).slice(0, 3)]);
+      const options = choiceOptions(bird);
       const answers = document.createElement("div");
       answers.className = "answers";
       for (const option of options) {
@@ -454,6 +646,8 @@
           answered = true;
           const isCorrect = option === bird;
           if (isCorrect) correctCount++;
+          else mistakes.add(bird);
+          updateContinuousActions();
           button.classList.add(isCorrect ? "correct" : "incorrect");
           for (const choice of answers.children) choice.disabled = true;
           message.textContent = isCorrect ? "Correct!" : `Not quite. The answer is ${bird.en}.`;
@@ -509,6 +703,7 @@
         });
         englishList.append(target);
       }
+      englishList.replaceChildren(...shuffle([...englishList.children]));
       columns.append(polishList, englishList);
       activity.append(instructions, columns);
       updateProgress();
@@ -517,6 +712,8 @@
     function connectPair(source, target) {
       if (matched.has(source) || matched.has(target)) return;
       if (source !== target) {
+        mistakes.add(source);
+        updateContinuousActions();
         selectedSource = null;
         const selectedButton = activity.querySelector('.connect-item[lang="pl"][aria-pressed="true"]');
         if (selectedButton) selectedButton.setAttribute("aria-pressed", "false");
@@ -537,7 +734,58 @@
       }
       updateProgress();
       message.textContent = `Matched ${source.pl} with ${source.en}.`;
-      if (matched.size === round.length) finishRound();
+      if (matched.size === round.length) {
+        if (inContinuousPlay()) {
+          controls.replaceChildren(makeButton("Next birds", "primary", nextConnectGroup));
+        } else {
+          finishRound();
+        }
+      }
+    }
+
+    function nextConnectGroup() {
+      completedBirds += round.length;
+      round = shuffle(birds).slice(0, 5);
+      matched = new Set();
+      selectedSource = null;
+      renderQuestion();
+    }
+
+    function typingResult(input, answer) {
+      const actual = Array.from(input.trim().normalize("NFC").toLocaleLowerCase("pl"));
+      const expected = Array.from(answer.trim().normalize("NFC").toLocaleLowerCase("pl"));
+      if (actual.join("") === expected.join("")) return "correct";
+      if (!actual.length || Math.abs(actual.length - expected.length) > 1) return "wrong";
+
+      if (actual.length === expected.length) {
+        const differences = [];
+        for (let i = 0; i < actual.length; i++) {
+          if (actual[i] !== expected[i]) differences.push(i);
+        }
+        if (differences.length === 1) return "almost";
+        if (differences.length === 2
+          && differences[1] === differences[0] + 1
+          && actual[differences[0]] === expected[differences[1]]
+          && actual[differences[1]] === expected[differences[0]]) return "almost";
+        return "wrong";
+      }
+
+      const shorter = actual.length < expected.length ? actual : expected;
+      const longer = actual.length < expected.length ? expected : actual;
+      let shortIndex = 0;
+      let longIndex = 0;
+      let skipped = false;
+      while (shortIndex < shorter.length && longIndex < longer.length) {
+        if (shorter[shortIndex] === longer[longIndex]) {
+          shortIndex++;
+        } else if (skipped) {
+          return "wrong";
+        } else {
+          skipped = true;
+        }
+        longIndex++;
+      }
+      return "almost";
     }
 
     function renderTyping() {
@@ -549,38 +797,61 @@
       prompt.lang = promptLanguage;
       prompt.textContent = bird[promptLanguage];
       const form = document.createElement("form");
+      form.className = "typing-form";
       const input = document.createElement("input");
       input.type = "text";
       input.autocomplete = "off";
-      input.setAttribute("aria-label", `Type the ${answerLanguage === "en" ? "English" : "Polish"} translation`);
+      input.placeholder = `${answerLanguage === "en" ? "English" : "Polish"} translation`;
+      input.setAttribute("aria-label", `Type the ${input.placeholder}`);
       input.required = true;
       const submit = document.createElement("button");
       submit.type = "submit";
       submit.className = "primary";
       submit.textContent = "Check answer";
-      form.append(input, document.createTextNode(" "), submit);
+      const answerCharacters = Array.from(bird[answerLanguage].normalize("NFC"));
+      const letterPositions = answerCharacters.flatMap((character, position) =>
+        /\p{L}/u.test(character) ? [position] : []
+      );
+      const hintCharacters = answerCharacters.map(character => /\p{L}/u.test(character) ? "_" : character);
+      let revealedLetters = 0;
+      const hint = document.createElement("p");
+      hint.id = "typing-hint";
+      hint.className = "typing-hint";
+      hint.lang = answerLanguage;
+      hint.setAttribute("role", "status");
+      const showLetter = makeButton("Show letter", "secondary", () => {
+        const position = letterPositions[revealedLetters++];
+        hintCharacters[position] = answerCharacters[position];
+        hint.textContent = `Hint: ${hintCharacters.join("")}`;
+        showLetter.disabled = revealedLetters === letterPositions.length;
+      });
+      showLetter.setAttribute("aria-controls", hint.id);
+      showLetter.disabled = letterPositions.length === 0;
+      form.append(input, document.createTextNode(" "), submit, document.createTextNode(" "), showLetter);
       form.addEventListener("submit", event => {
         event.preventDefault();
         if (answered) return;
-        const expected = bird[answerLanguage].toLocaleLowerCase().trim();
-        const actual = input.value.toLocaleLowerCase().trim();
-        const isCorrect = actual === expected;
+        const result = typingResult(input.value, bird[answerLanguage]);
         answered = true;
-        if (isCorrect) correctCount++;
+        if (result === "correct") correctCount++;
+        else mistakes.add(bird);
+        updateContinuousActions();
         input.disabled = true;
         submit.disabled = true;
-        message.textContent = isCorrect
+        showLetter.disabled = true;
+        message.classList.add(result);
+        message.textContent = result === "correct"
           ? "Correct!"
-          : `The correct answer is ${bird[answerLanguage]}.`;
+          : `${result === "almost" ? "Almost:" : "Wrong!"} The correct answer is ${bird[answerLanguage]}.`;
         showNextButton();
       });
-      activity.append(prompt, form);
-      input.focus();
+      activity.append(prompt, form, hint);
+      if (!window.matchMedia("(pointer: coarse)").matches) input.focus();
     }
 
     function showNextButton() {
       controls.replaceChildren(makeButton(
-        index === round.length - 1 ? "Finish round" : "Next bird",
+        !inContinuousPlay() && index === round.length - 1 ? "Finish round" : "Next bird",
         "primary",
         nextQuestion
       ));
@@ -588,6 +859,17 @@
 
     function nextQuestion() {
       if (!answered) return;
+      if (inContinuousPlay()) {
+        completedBirds++;
+        if (index === round.length - 1) {
+          round = shuffle(birds).slice(0, 5);
+          index = 0;
+        } else {
+          index++;
+        }
+        renderQuestion();
+        return;
+      }
       if (index === round.length - 1) {
         finishRound();
         return;
