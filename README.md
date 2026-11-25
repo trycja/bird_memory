@@ -32,6 +32,10 @@ After a multiple-choice, Connect, or typing round with mistakes, **Fix mistakes*
 
 After a round, **Keep playing** continues the same difficulty without a limit, drawing from the selected location's birds. Connect continues in groups of five pairs. During continuous play, **Fix mistakes** pauses the current game for a practice round and then resumes it; birds missed again remain available for further practice. **Start over** clears the score and mistakes and begins a new continuous session.
 
+The interface uses the locally bundled [Inter font](https://github.com/rsms/inter), licensed under the [SIL Open Font License](./fonts/Inter-LICENSE.txt).
+
+The background image is stored locally in `assets/background.jpg`.
+
 ## Tests
 
 Run the Worker and game tests with `node --test tests/*.test.mjs`. They use Node's built-in test runner and do not require external packages.

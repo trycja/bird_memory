@@ -5,47 +5,118 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Bird Words — Memory Game</title>
   <style>
+    @font-face {
+      font-family: Inter;
+      src: url("fonts/InterVariable.woff2") format("woff2");
+      font-weight: 100 900;
+      font-style: normal;
+      font-display: swap;
+    }
     :root {
       color-scheme: dark;
-      font-family: system-ui, sans-serif;
-      color: #e6eee8;
-      background: #111915;
+      font-family: Inter, system-ui, sans-serif;
+      color: #f2f8fb;
+      background: #080612;
       scrollbar-gutter: stable;
     }
     * { box-sizing: border-box; }
-    body { margin: 0; padding: 2rem 1rem; }
+    body {
+      margin: 0;
+      padding: 2rem 1rem;
+      min-height: 100vh;
+      background: linear-gradient(#05030a66, #05030a66), url("assets/background.jpg") center / cover no-repeat fixed;
+    }
     main { max-width: 760px; margin: auto; }
-    header { text-align: center; }
-    h1 { margin: .25rem 0; font-size: clamp(2rem, 6vw, 3rem); }
-    h2 { margin: 0; font-size: 1.35rem; }
-    .subtitle { color: #a7b8ab; line-height: 1.5; }
+    header { margin: 0 0 2rem; text-align: left; }
+    h1 {
+      margin: 0;
+      color: #e8e3dc;
+      font-size: clamp(1.5rem, 4vw, 2.25rem);
+      font-weight: 600;
+      letter-spacing: .04em;
+      line-height: 1.1;
+      text-shadow: 0 4px 24px #00000055;
+      text-transform: uppercase;
+    }
+    h2 { margin: 0; font-size: 1.35rem; font-weight: 600; }
+    #home, #game {
+      border: 1px solid #f0e5f02e;
+      border-radius: 1.5rem;
+      box-shadow: 0 20px 60px #00000055, inset 0 1px 0 #ffffff1a;
+      padding: clamp(1rem, 3vw, 1.75rem);
+    }
+    #home {
+      background: #0c0a18c9;
+      -webkit-backdrop-filter: blur(20px);
+      backdrop-filter: blur(20px);
+    }
+    #game { position: relative; isolation: isolate; }
+    /* Blur a separate layer so the game navigation remains fixed to the viewport. */
+    #game::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      border-radius: inherit;
+      background: #0c0a18c9;
+      -webkit-backdrop-filter: blur(20px);
+      backdrop-filter: blur(20px);
+      pointer-events: none;
+    }
     .location-controls { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: .75rem; margin: 1rem 0 .5rem; }
     .location-field { display: grid; min-width: 0; gap: .35rem; font-weight: 700; }
-    select { width: 100%; min-width: 0; min-height: 44px; padding: .5rem; border: 2px solid #506e59; border-radius: .5rem; background: #202b24; color: #e6eee8; font: inherit; font-size: 1rem; text-overflow: ellipsis; }
-    #location-status { min-height: 1.5em; color: #9cc9a5; }
-    .attribution { color: #a7b8ab; text-align: center; font-size: .85rem; }
-    a { color: #a7d6b1; }
-    .difficulty-list { display: grid; gap: .75rem; margin-top: 1rem; }
+    select, input {
+      width: 100%;
+      min-width: 0;
+      min-height: 44px;
+      padding: .5rem;
+      border: 1px solid #f0e5f040;
+      border-radius: .75rem;
+      background: #242d39;
+      color: #f2f8fb;
+      font: inherit;
+      font-size: 1rem;
+    }
+    select { text-overflow: ellipsis; }
+    #location-status { min-height: 1.5em; color: #f0cdd4; }
+    .attribution { color: #cbd0da; text-align: center; font-size: .85rem; }
+    a { color: #f5c2cb; }
+    #mode-chooser { margin-top: 1.75rem; }
+    .difficulty-list { display: grid; gap: .85rem; margin-top: 1rem; }
     .difficulty, .primary, .secondary, .answer, .connect-item {
-      border-radius: .65rem;
-      padding: .8rem 1rem;
+      border: 1px solid #f0e5f040;
+      border-radius: .85rem;
+      padding: .7rem .8rem;
+      background: #181426d9;
+      box-shadow: 0 8px 20px #00000026, inset 0 1px 0 #ffffff1a;
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
       font: inherit;
       font-weight: 700;
     }
+    .primary, .secondary { border-radius: 999px; }
     button { min-height: 44px; cursor: pointer; touch-action: manipulation; }
     button:focus-visible, input:focus-visible, select:focus-visible {
-      outline: 3px solid #f0bf62;
+      outline: 3px solid #ffffff;
       outline-offset: 3px;
     }
-    .difficulty, .primary {
-      border: 0;
-      background: #28523a;
-      color: #f4f8f4;
+    .primary { background: #35223cdb; color: #f2f8fb; }
+    .difficulty {
+      color: #f2f8fb;
+      text-align: left;
     }
-    .difficulty { text-align: left; }
-    .difficulty:hover, .primary:not(:disabled):hover { background: #356a49; }
+    .difficulty:not(:disabled):hover, .primary:not(:disabled):hover,
+    .secondary:not(:disabled):hover, .answer:not(:disabled):hover, .connect-item:not(:disabled):hover {
+      background: #4a3b54ed;
+      border-color: #ffffff99;
+    }
+    .difficulty:not(:disabled):active, .primary:not(:disabled):active,
+    .secondary:not(:disabled):active, .answer:not(:disabled):active, .connect-item:not(:disabled):active {
+      background: #67506bef;
+      border-color: #ffffffcc;
+    }
     .primary:disabled { opacity: .6; cursor: not-allowed; }
-    .difficulty span { display: block; margin-top: .2rem; font-weight: 400; }
+    .difficulty span { display: block; margin-top: .2rem; font-weight: 500; line-height: 1.4; }
     #game { padding-bottom: calc(13rem + env(safe-area-inset-bottom)); }
     #fixed-controls {
       position: fixed;
@@ -78,49 +149,57 @@
       margin: 1.75rem 0 1rem;
     }
     .secondary {
-      border: 2px solid #506e59;
-      background: #202b24;
-      color: #e6eee8;
+      background: #241a2cde;
+      color: #f2f8fb;
     }
     .secondary:disabled { opacity: .6; cursor: not-allowed; }
-    .secondary:not(:disabled):hover, .answer:hover, .connect-item:hover { background: #2b3b30; }
+    #progress {
+      display: inline-block;
+      padding: .4rem .65rem;
+      border: 1px solid #e7bac45c;
+      border-radius: 999px;
+      background: #a7657a30;
+      color: #ffe2e6;
+      font-weight: 700;
+    }
     .prompt {
       margin: 1.5rem 0;
       text-align: center;
-      font-size: clamp(1.5rem, 5vw, 2rem);
-      font-weight: 700;
+      color: #f2f8fb;
+      font-size: clamp(1.65rem, 5vw, 2.5rem);
+      font-weight: 800;
       overflow-wrap: anywhere;
     }
+    .prompt[lang="en"] { color: #f5c7ce; }
     .bird-photo { margin: 1rem auto; max-width: 500px; text-align: center; }
-    .bird-photo img { display: block; max-width: 100%; max-height: 350px; margin: auto; border-radius: .65rem; }
-    .bird-photo figcaption { margin-top: .5rem; color: #a7b8ab; font-size: .85rem; overflow-wrap: anywhere; }
-    .photo-status { text-align: center; color: #a7b8ab; }
-    .answers { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; }
+    .bird-photo img { display: block; max-width: 100%; max-height: 350px; margin: auto; border: 1px solid #f0e5f040; border-radius: 1rem; box-shadow: 0 12px 30px #00000055; }
+    .bird-photo figcaption { margin-top: .75rem; color: #cbd0da; font-size: .85rem; overflow-wrap: anywhere; }
+    .photo-status { text-align: center; color: #cbd0da; }
+    .answers { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .85rem; }
     .answer {
       min-height: 4rem;
-      border: 2px solid #506e59;
-      background: #202b24;
-      color: #e6eee8;
+      color: #f2f8fb;
       overflow-wrap: anywhere;
     }
     .answer:disabled { cursor: default; opacity: 1; }
-    .answer.correct, .connect-item.matched { background: #23442d; border-color: #6ca677; }
-    .answer.incorrect { background: #4a2b29; border-color: #bd766c; }
+    .answer.correct, .connect-item.matched { background: linear-gradient(135deg, #254e40, #246f52); border-color: #9cebc2; }
+    .answer.incorrect { background: linear-gradient(135deg, #5b303c, #774148); border-color: #ffb9b3; }
     .connect-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; }
-    .connect-list { display: grid; min-width: 0; align-content: start; gap: .55rem; }
-    .connect-item { width: 100%; border: 2px solid #506e59; background: #202b24; color: #e6eee8; overflow-wrap: anywhere; }
-    .connect-item[aria-pressed="true"] { outline: 3px solid #f0bf62; outline-offset: 2px; }
+    .connect-list { display: grid; min-width: 0; align-content: start; gap: .75rem; }
+    .connect-item { width: 100%; color: #f2f8fb; overflow-wrap: anywhere; }
+    .connect-item[aria-pressed="true"] { outline: 3px solid #f5c2cb; outline-offset: 2px; }
     .connect-item.matched { cursor: default; }
     .typing-form { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: .5rem; }
-    input { width: 100%; min-width: 0; min-height: 44px; padding: .5rem; border: 2px solid #506e59; border-radius: .5rem; background: #202b24; color: #e6eee8; font: inherit; font-size: 1rem; }
-    .typing-hint { white-space: pre-wrap; overflow-wrap: anywhere; color: #f0bf62; }
-    #message { min-height: 1.5em; text-align: center; font-weight: 700; color: #9cc9a5; }
-    #message.correct { color: #9ee2a6; }
-    #message.almost { color: #f0bf62; }
-    #message.wrong { color: #ffaaa1; }
+    input::placeholder { color: #bfc6d1; opacity: 1; }
+    .typing-hint { white-space: pre-wrap; overflow-wrap: anywhere; color: #ffe3a1; }
+    #message { min-height: 1.5em; text-align: center; font-weight: 700; color: #f0cdd4; }
+    #message.correct { color: #b1f3cc; }
+    #message.almost { color: #ffe3a1; }
+    #message.wrong { color: #ffc1ba; }
     .hidden { display: none; }
     @media (max-width: 600px) {
       body { padding: 1.25rem .75rem; }
+      header { margin-bottom: 1.5rem; }
       .location-controls { grid-template-columns: 1fr; }
       .answers { grid-template-columns: 1fr; }
       .connect-columns { gap: .45rem; }
@@ -134,7 +213,6 @@
   <main>
     <header>
       <h1>Bird Words</h1>
-      <p class="subtitle">Learn bird names in English and Polish.</p>
     </header>
     <section id="home" aria-labelledby="location-title">
       <h2 id="location-title">Choose a location</h2>
