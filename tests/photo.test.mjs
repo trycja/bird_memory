@@ -15,9 +15,11 @@ function element(tagName) {
     children: [],
     textContent: "",
     isConnected: true,
+    classList: { add() {}, remove() {} },
     append(...items) { this.children.push(...items); },
     replaceChildren(...items) { this.children = items; },
-    addEventListener() {}
+    addEventListener() {},
+    setAttribute() {}
   };
 }
 
@@ -66,15 +68,59 @@ const image = {
 test("looks up the scientific name and displays the photo with attribution", async () => {
   const { show, requests } = setup([page, image]);
   const container = element("div");
-  await show({ en: "House Sparrow", scientificName: "Passer domesticus" }, container);
+  await show({ en: "House Sparrow", pl: "Wróbel", scientificName: "Passer domesticus" }, container);
 
   assert.equal(requests[0].searchParams.get("titles"), "Passer domesticus");
   assert.equal(requests[1].searchParams.get("titles"), "File:Example.jpg");
   const figure = container.children[0];
-  assert.equal(figure.children[0].alt, "Photo of House Sparrow");
+  assert.equal(figure.children[0].alt, "Zdjęcie: Wróbel");
+  assert.equal(figure.children[0].lang, "pl");
   const caption = figure.children[1].children;
   assert.match(caption[1].textContent, /Example author/);
   assert.equal(caption[2].href, "https://creativecommons.org/licenses/by/4.0/");
+});
+
+test("starts the photo lookup before the English translation is revealed", () => {
+  const renderStart = html.indexOf("    function renderShow()");
+  const renderEnd = html.indexOf("    function choiceOptions(", renderStart);
+  assert.ok(renderStart !== -1 && renderEnd !== -1, "Starter mode must exist in the game page");
+  const bird = { en: "House Sparrow", pl: "Wróbel", scientificName: "Passer domesticus" };
+  const activity = element("div");
+  const controls = element("div");
+  const requests = [];
+  const context = vm.createContext({
+    bird,
+    activity,
+    controls,
+    message: element("p"),
+    document: { createElement: element },
+    showBirdPhoto: (item, container) => requests.push({ item, container }),
+    inContinuousPlay: () => false,
+    nextQuestion() {},
+    makeButton(text, className, handler) {
+      const button = element("button");
+      button.textContent = text;
+      button.click = handler;
+      return button;
+    }
+  });
+  vm.runInContext(
+    "let round = [bird], index = 0, answered = false, correctCount = 0;\n"
+      + html.slice(renderStart, renderEnd),
+    context
+  );
+  context.renderShow();
+  assert.equal(activity.children[0].textContent, "Wróbel");
+  assert.equal(activity.children[1].textContent, "\u00a0");
+  assert.equal(activity.children[2].className, "photo-status");
+  assert.equal(requests.length, 1);
+  assert.equal(requests[0].item, bird);
+  assert.equal(requests[0].container, activity.children[2]);
+
+  controls.children[0].click();
+  assert.equal(activity.children[1].textContent, "House Sparrow");
+  assert.equal(activity.children[2], requests[0].container);
+  assert.equal(requests.length, 1);
 });
 
 test("does not display images without license information", async () => {

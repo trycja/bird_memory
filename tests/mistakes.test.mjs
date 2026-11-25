@@ -13,9 +13,15 @@ function extract(from, to) {
 }
 
 function element() {
+  const classes = new Set();
   return {
     children: [],
-    classList: { add() {}, remove() {}, toggle() {} },
+    classList: {
+      add(name) { classes.add(name); },
+      remove(name) { classes.delete(name); },
+      toggle() {},
+      contains(name) { return classes.has(name); }
+    },
     get childNodes() { return this.children; },
     append(...items) { this.children.push(...items); },
     replaceChildren(...items) { this.children = items; },
@@ -38,6 +44,7 @@ function setupRounds() {
     modes: ["starter", "choice"],
     modeTitle: element(),
     home: element(),
+    homeButton: element(),
     game: element(),
     activity: element(),
     controls: element(),
@@ -78,9 +85,8 @@ test("retries only missed birds and clears mistakes for each new round", () => {
   game.controls.children[0].click();
   assert.equal(vm.runInContext("round.map(bird => bird.en).join(',')", game), "B");
   game.finishRound();
-  assert.equal(game.controls.children.length, 2);
+  assert.equal(game.controls.children.length, 1);
   assert.equal(game.controls.children[0].textContent, "Keep playing");
-  assert.equal(game.controls.children[1].textContent, "Choose difficulty");
 });
 
 test("continuous play crosses five-bird batches and start over resets the session", () => {
@@ -148,6 +154,11 @@ test("records an incorrect multiple-choice answer", () => {
   game.renderChoice();
   game.activity.children[1].children[1].click();
   assert.equal(vm.runInContext("mistakes.has(round[0])", game), true);
+  assert.equal(game.message.classList.contains("correct"), false);
+  vm.runInContext("answered = false;", game);
+  game.renderChoice();
+  game.activity.children[3].children[0].click();
+  assert.equal(game.message.classList.contains("correct"), true);
 });
 
 test("records the selected Polish bird once when a Connect match is wrong", () => {

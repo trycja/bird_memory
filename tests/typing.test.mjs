@@ -30,7 +30,7 @@ test("classifies unrelated, multiple-error and blank answers as wrong", () => {
   assert.equal(typingResult("   ", "Wróbel"), "wrong");
 });
 
-function setupTypingGame(coarsePointer = false) {
+function setupTypingGame(coarsePointer = false, bird = { en: "Great Tit", pl: "Bogatka" }) {
   function element(tagName) {
     return {
       tagName,
@@ -67,7 +67,7 @@ function setupTypingGame(coarsePointer = false) {
   const renderEnd = html.indexOf("    function showNextButton()", end);
   assert.ok(renderEnd !== -1, "Typing render function must exist in the game page");
   vm.runInContext(
-    `let round = [{ en: "Great Tit", pl: "Bogatka" }], index = 0, answered = false, correctCount = 0, mistakes = new Set();\n`
+    `let round = [${JSON.stringify(bird)}], index = 0, answered = false, correctCount = 0, mistakes = new Set();\n`
       + html.slice(start, renderEnd),
     game
   );
@@ -95,6 +95,24 @@ test("reveals one letter at a time without changing the answer or score", () => 
   assert.equal(game.message.textContent, "Correct!");
   assert.equal(vm.runInContext("correctCount", game), 1);
   assert.equal(vm.runInContext("mistakes.size", game), 0);
+});
+
+test("accepts English names without Common and still flags typos", () => {
+  const bird = { en: "Common Chiffchaff", pl: "Pierwiosnek" };
+  for (const [input, expected, score] of [
+    ["chiffchaff", "Correct!", 1],
+    [" common chiffchaff ", "Correct!", 1],
+    ["chiffchaf", "Almost:", 0],
+    ["common", "Wrong!", 0]
+  ]) {
+    const { game, activity } = setupTypingGame(false, bird);
+    const form = activity.children[1];
+    form.children[0].value = input;
+    form.listeners.submit({ preventDefault() {} });
+    assert.ok(game.message.textContent.startsWith(expected), input);
+    assert.equal(vm.runInContext("correctCount", game), score, input);
+    assert.equal(vm.runInContext("mistakes.size", game), score ? 0 : 1, input);
+  }
 });
 
 test("records an almost answer for mistake practice", () => {

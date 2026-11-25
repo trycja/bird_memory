@@ -20,11 +20,15 @@ The location centers and search radii are configured in `worker.mjs`: Biebrzańs
 
 The page uses recent reports from the previous 30 days and currently includes Polish translations for a curated set of common species. Species without a translation are not offered in the game; add their English common name and Polish name to the `polishNames` map in `index.html`. The selected location needs at least five supported species in recent reports to start a round.
 
+For local testing, open `index.html` and select **Use sample birds**. This uses a built-in list rather than eBird or the selected location; bird photos still require an internet connection.
+
 On a phone, use Connect by tapping a Polish name and then its English translation; dragging is optional.
 
-In Starter show, the game looks up a photo by scientific name through Wikipedia and Wikimedia Commons after revealing the translation. A credit and license link appear with the photo. The photo illustrates the species and is not necessarily from the selected location; if a photo or its credit information is unavailable, the game continues without it.
+Next and practice buttons appear inside the game panel on desktop and stay fixed near the bottom of the screen on mobile. **Choose difficulty** sits below the title.
 
-In Type it in, answers are case-insensitive. A single missing, extra, substituted, or swapped adjacent character is marked “Almost”; only exact answers count as correct. **Show letter** reveals one letter at a time in a separate hint without affecting the score.
+In Starter show, the game looks up a photo by scientific name through Wikipedia and Wikimedia Commons as soon as the bird appears, before revealing the translation. A credit and license link appear with the photo. The photo illustrates the species and is not necessarily from the selected location; if a photo or its credit information is unavailable, the game continues without it.
+
+In Type it in, answers are case-insensitive and the word “Common” may be omitted from the start of an English name. A single missing, extra, substituted, or swapped adjacent character is marked “Almost”; only exact answers, including the accepted shorter names, count as correct. **Show letter** reveals one letter at a time in a separate hint without affecting the score.
 
 In Pick a translation, the other choices preferentially come from the correct bird's family, including known birds not recently reported at the selected location. If there are not enough, other birds fill the remaining choices.
 

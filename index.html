@@ -16,7 +16,7 @@
       color-scheme: dark;
       font-family: Inter, system-ui, sans-serif;
       color: #f2f8fb;
-      background: #080612;
+      background: #061116;
       scrollbar-gutter: stable;
     }
     * { box-sizing: border-box; }
@@ -24,7 +24,7 @@
       margin: 0;
       padding: 2rem 1rem;
       min-height: 100vh;
-      background: linear-gradient(#05030a66, #05030a66), url("assets/background.jpg") center / cover no-repeat fixed;
+      background: linear-gradient(#03100f66, #03100f66), url("assets/background.jpg") center / cover no-repeat fixed;
     }
     main { max-width: 760px; margin: auto; }
     header { margin: 0 0 2rem; text-align: left; }
@@ -40,13 +40,13 @@
     }
     h2 { margin: 0; font-size: 1.35rem; font-weight: 600; }
     #home, #game {
-      border: 1px solid #f0e5f02e;
+      border: 1px solid #d5f3ed2e;
       border-radius: 1.5rem;
       box-shadow: 0 20px 60px #00000055, inset 0 1px 0 #ffffff1a;
       padding: clamp(1rem, 3vw, 1.75rem);
     }
     #home {
-      background: #0c0a18c9;
+      background: #07191d80;
       -webkit-backdrop-filter: blur(20px);
       backdrop-filter: blur(20px);
     }
@@ -58,7 +58,7 @@
       inset: 0;
       z-index: -1;
       border-radius: inherit;
-      background: #0c0a18c9;
+      background: #07191d80;
       -webkit-backdrop-filter: blur(20px);
       backdrop-filter: blur(20px);
       pointer-events: none;
@@ -70,24 +70,24 @@
       min-width: 0;
       min-height: 44px;
       padding: .5rem;
-      border: 1px solid #f0e5f040;
+      border: 1px solid #c9e8e640;
       border-radius: .75rem;
-      background: #242d39;
+      background: #1c3038;
       color: #f2f8fb;
       font: inherit;
       font-size: 1rem;
     }
     select { text-overflow: ellipsis; }
-    #location-status { min-height: 1.5em; color: #f0cdd4; }
+    #location-status { min-height: 1.5em; color: #c3e9ee; }
     .attribution { color: #cbd0da; text-align: center; font-size: .85rem; }
-    a { color: #f5c2cb; }
+    a { color: #a9dfe9; }
     #mode-chooser { margin-top: 1.75rem; }
     .difficulty-list { display: grid; gap: .85rem; margin-top: 1rem; }
     .difficulty, .primary, .secondary, .answer, .connect-item {
-      border: 1px solid #f0e5f040;
+      border: 1px solid #c9e8e640;
       border-radius: .85rem;
       padding: .7rem .8rem;
-      background: #181426d9;
+      background: #132c22d9;
       box-shadow: 0 8px 20px #00000026, inset 0 1px 0 #ffffff1a;
       -webkit-backdrop-filter: blur(12px);
       backdrop-filter: blur(12px);
@@ -100,23 +100,34 @@
       outline: 3px solid #ffffff;
       outline-offset: 3px;
     }
-    .primary { background: #35223cdb; color: #f2f8fb; }
+    .primary { background: #1e4937db; color: #f2f8fb; }
     .difficulty {
       color: #f2f8fb;
       text-align: left;
     }
     .difficulty:not(:disabled):hover, .primary:not(:disabled):hover,
     .secondary:not(:disabled):hover, .answer:not(:disabled):hover, .connect-item:not(:disabled):hover {
-      background: #4a3b54ed;
+      background: #305d48ed;
       border-color: #ffffff99;
     }
     .difficulty:not(:disabled):active, .primary:not(:disabled):active,
     .secondary:not(:disabled):active, .answer:not(:disabled):active, .connect-item:not(:disabled):active {
-      background: #67506bef;
+      background: #44745bef;
       border-color: #ffffffcc;
     }
     .primary:disabled { opacity: .6; cursor: not-allowed; }
     .difficulty span { display: block; margin-top: .2rem; font-weight: 500; line-height: 1.4; }
+    #home-button:not(.hidden) {
+      display: inline-flex;
+      align-items: center;
+      gap: .55rem;
+      margin-top: 1rem;
+      background: #173943de;
+      color: #f2f8fb;
+      border-color: #a6d9bd66;
+    }
+    #home-button:not(:disabled):hover { background: #305d48ed; border-color: #ffffff; }
+    #home-button:not(:disabled):active { background: #44745bef; border-color: #ffffff; }
     #game { padding-bottom: calc(13rem + env(safe-area-inset-bottom)); }
     #fixed-controls {
       position: fixed;
@@ -149,17 +160,17 @@
       margin: 1.75rem 0 1rem;
     }
     .secondary {
-      background: #241a2cde;
+      background: #173943de;
       color: #f2f8fb;
     }
     .secondary:disabled { opacity: .6; cursor: not-allowed; }
     #progress {
       display: inline-block;
       padding: .4rem .65rem;
-      border: 1px solid #e7bac45c;
+      border: 1px solid #9bd0b277;
       border-radius: 999px;
-      background: #a7657a30;
-      color: #ffe2e6;
+      background: #173d2eeb;
+      color: #edf8ef;
       font-weight: 700;
     }
     .prompt {
@@ -170,10 +181,11 @@
       font-weight: 800;
       overflow-wrap: anywhere;
     }
-    .prompt[lang="en"] { color: #f5c7ce; }
+    .prompt[lang="en"] { color: #b6e5ee; }
+    .reserved-answer { visibility: hidden; }
     .bird-photo { margin: 1rem auto; max-width: 500px; text-align: center; }
-    .bird-photo img { display: block; max-width: 100%; max-height: 350px; margin: auto; border: 1px solid #f0e5f040; border-radius: 1rem; box-shadow: 0 12px 30px #00000055; }
-    .bird-photo figcaption { margin-top: .75rem; color: #cbd0da; font-size: .85rem; overflow-wrap: anywhere; }
+    .bird-photo img { display: block; max-width: 100%; max-height: 350px; margin: auto; border: 1px solid #c9e8e640; border-radius: 1rem; box-shadow: 0 12px 30px #00000055; }
+    .bird-photo figcaption { margin-top: .75rem; color: #cbd0da; font-size: 8px; overflow-wrap: anywhere; }
     .photo-status { text-align: center; color: #cbd0da; }
     .answers { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .85rem; }
     .answer {
@@ -182,25 +194,33 @@
       overflow-wrap: anywhere;
     }
     .answer:disabled { cursor: default; opacity: 1; }
-    .answer.correct, .connect-item.matched { background: linear-gradient(135deg, #254e40, #246f52); border-color: #9cebc2; }
+    .answer.correct { background: linear-gradient(135deg, #254e40, #246f52); border-color: #9cebc2; }
+    .connect-item.matched { background: linear-gradient(135deg, #3e315e, #58447b); border-color: #c8b3ed; }
     .answer.incorrect { background: linear-gradient(135deg, #5b303c, #774148); border-color: #ffb9b3; }
     .connect-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; }
     .connect-list { display: grid; min-width: 0; align-content: start; gap: .75rem; }
     .connect-item { width: 100%; color: #f2f8fb; overflow-wrap: anywhere; }
-    .connect-item[aria-pressed="true"] { outline: 3px solid #f5c2cb; outline-offset: 2px; }
+    .connect-item[aria-pressed="true"] { outline: 3px solid #a9dfe9; outline-offset: 2px; }
     .connect-item.matched { cursor: default; }
     .typing-form { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: .5rem; }
     input::placeholder { color: #bfc6d1; opacity: 1; }
-    .typing-hint { white-space: pre-wrap; overflow-wrap: anywhere; color: #ffe3a1; }
-    #message { min-height: 1.5em; text-align: center; font-weight: 700; color: #f0cdd4; }
+    .typing-hint { white-space: pre-wrap; overflow-wrap: anywhere; color: #b6e5ee; }
+    #message { min-height: 1.5em; text-align: center; font-weight: 700; color: #c3e9ee; }
+    #message.correct, #message.almost, #message.wrong { font-size: 1.25rem; }
     #message.correct { color: #b1f3cc; }
     #message.almost { color: #ffe3a1; }
     #message.wrong { color: #ffc1ba; }
     .hidden { display: none; }
+    @media (min-width: 601px) {
+      #game { padding-bottom: clamp(1rem, 3vw, 1.75rem); }
+      #fixed-controls { position: static; }
+    }
     @media (max-width: 600px) {
       body { padding: 1.25rem .75rem; }
       header { margin-bottom: 1.5rem; }
+      .reserved-answer { display: none; }
       .location-controls { grid-template-columns: 1fr; }
+      #load-sample { width: 100%; }
       .answers { grid-template-columns: 1fr; }
       .connect-columns { gap: .45rem; }
       .connect-item { padding: .65rem .45rem; }
@@ -213,6 +233,12 @@
   <main>
     <header>
       <h1>Bird Words</h1>
+      <button class="secondary hidden" id="home-button" type="button">
+        <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M4 6h16M4 12h16M4 18h16"></path>
+        </svg>
+        Choose difficulty
+      </button>
     </header>
     <section id="home" aria-labelledby="location-title">
       <h2 id="location-title">Choose a location</h2>
@@ -225,8 +251,9 @@
         </label>
         <button class="primary" id="load-location" type="button">Load birds</button>
       </div>
-      <p id="location-status" role="status" aria-live="polite">Load recent eBird reports to choose a game mode.</p>
-      <p class="attribution">Bird observations from <a href="https://ebird.org" target="_blank" rel="noopener noreferrer">eBird</a> (last 30 days).</p>
+      <button class="secondary" id="load-sample" type="button">Use sample birds</button>
+      <p id="location-status" role="status" aria-live="polite">Load recent eBird reports or use sample birds to choose a game mode.</p>
+      <p class="attribution" id="location-attribution">Bird observations from <a href="https://ebird.org" target="_blank" rel="noopener noreferrer">eBird</a> (last 30 days).</p>
       <div id="mode-chooser" class="hidden" aria-labelledby="choose-title">
         <h2 id="choose-title">Choose a difficulty</h2>
         <div class="difficulty-list">
@@ -240,7 +267,6 @@
     <section id="game" class="hidden" aria-labelledby="mode-title">
       <div class="toolbar">
         <h2 id="mode-title"></h2>
-        <button class="secondary" id="home-button" type="button">Choose difficulty</button>
       </div>
       <p id="progress"></p>
       <div id="activity"></div>
@@ -352,6 +378,16 @@
       ["White Stork"],
       ["White Wagtail"]
     ];
+    const sampleSpecies = [
+      ["House Sparrow", "Passer domesticus"],
+      ["Great Tit", "Parus major"],
+      ["Mallard", "Anas platyrhynchos"],
+      ["Mute Swan", "Cygnus olor"],
+      ["Common Chiffchaff", "Phylloscopus collybita"],
+      ["White Stork", "Ciconia ciconia"],
+      ["European Robin", "Erithacus rubecula"],
+      ["Common Blackbird", "Turdus merula"]
+    ];
     const modes = [
       "0 — Starter show",
       "1 — Pick a translation",
@@ -360,6 +396,7 @@
     ];
     let birds = [];
     const home = document.getElementById("home");
+    const homeButton = document.getElementById("home-button");
     const modeChooser = document.getElementById("mode-chooser");
     const game = document.getElementById("game");
     const modeTitle = document.getElementById("mode-title");
@@ -370,7 +407,9 @@
     const continuousActions = document.getElementById("continuous-actions");
     const locationSelect = document.getElementById("location-select");
     const locationStatus = document.getElementById("location-status");
+    const locationAttribution = document.getElementById("location-attribution");
     const loadLocationButton = document.getElementById("load-location");
+    const loadSampleButton = document.getElementById("load-sample");
     let round = [];
     let mode = 0;
     let index = 0;
@@ -402,6 +441,24 @@
       return button;
     }
 
+    function loadSampleBirds() {
+      const sampleBirds = [];
+      for (const [en, scientificName] of sampleSpecies) {
+        const pl = polishNames.get(en);
+        if (!pl) {
+          birds = [];
+          modeChooser.classList.add("hidden");
+          locationStatus.textContent = `Sample bird translation is missing for ${en}.`;
+          return;
+        }
+        sampleBirds.push({ en, pl, scientificName });
+      }
+      birds = sampleBirds;
+      locationAttribution.classList.add("hidden");
+      locationStatus.textContent = `Loaded ${birds.length} sample birds, not location reports. Photos require an internet connection.`;
+      modeChooser.classList.remove("hidden");
+    }
+
     async function loadLocationBirds() {
       if (!ebirdProxyUrl) {
         locationStatus.textContent = "Configure the Cloudflare Worker URL in index.html before loading eBird data.";
@@ -410,7 +467,9 @@
 
       birds = [];
       modeChooser.classList.add("hidden");
+      locationAttribution.classList.remove("hidden");
       loadLocationButton.disabled = true;
+      loadSampleButton.disabled = true;
       locationSelect.disabled = true;
       locationStatus.textContent = "Loading recent eBird observations…";
       try {
@@ -444,6 +503,7 @@
         locationStatus.textContent = `Could not load bird data: ${error.message}`;
       } finally {
         loadLocationButton.disabled = false;
+        loadSampleButton.disabled = false;
         locationSelect.disabled = false;
       }
     }
@@ -457,6 +517,7 @@
       modeTitle.textContent = modes[mode];
       home.classList.add("hidden");
       game.classList.remove("hidden");
+      homeButton.classList.remove("hidden");
       startRound(shuffle(birds).slice(0, 5));
     }
 
@@ -551,7 +612,6 @@
         controls.append(makeButton("Fix mistakes", "primary", () => startRound(shuffle([...mistakes]))));
       }
       controls.append(makeButton("Keep playing", "primary", keepPlaying));
-      controls.append(makeButton("Choose difficulty", "primary", showHome));
     }
 
     function renderQuestion() {
@@ -619,7 +679,8 @@
         const figure = document.createElement("figure");
         figure.className = "bird-photo";
         const image = document.createElement("img");
-        image.alt = `Photo of ${bird.en}`;
+        image.alt = `Zdjęcie: ${bird.pl}`;
+        image.lang = "pl";
         image.addEventListener("error", () => {
           if (container.isConnected) container.textContent = "Photo unavailable: the image could not be loaded.";
         });
@@ -650,7 +711,16 @@
       prompt.className = "prompt";
       prompt.lang = "pl";
       prompt.textContent = bird.pl;
-      activity.append(prompt);
+      const photo = document.createElement("div");
+      photo.className = "photo-status";
+      photo.setAttribute("role", "status");
+      photo.textContent = "Loading bird photo…";
+      const answer = document.createElement("p");
+      answer.className = "prompt reserved-answer";
+      answer.lang = "en";
+      answer.textContent = "\u00a0";
+      activity.append(prompt, answer, photo);
+      showBirdPhoto(bird, photo);
       function setStarterControls(button, showFinish) {
         button.classList.add("starter-nav");
         if (inContinuousPlay()) {
@@ -667,17 +737,8 @@
       setStarterControls(makeButton("Show English", "primary", () => {
         if (answered) return;
         answered = true;
-        const answer = document.createElement("p");
-        answer.className = "prompt";
-        answer.lang = "en";
         answer.textContent = bird.en;
-        activity.append(answer);
-        const photo = document.createElement("div");
-        photo.className = "photo-status";
-        photo.setAttribute("role", "status");
-        photo.textContent = "Loading bird photo…";
-        activity.append(photo);
-        showBirdPhoto(bird, photo);
+        answer.classList.remove("reserved-answer");
         correctCount++;
         message.textContent = "Translation revealed.";
         const nextButton = makeButton("Next bird", "primary", nextQuestion);
@@ -725,6 +786,7 @@
           const isCorrect = option === bird;
           if (isCorrect) correctCount++;
           else mistakes.add(bird);
+          message.classList.add(isCorrect ? "correct" : "wrong");
           updateContinuousActions();
           button.classList.add(isCorrect ? "correct" : "incorrect");
           for (const choice of answers.children) choice.disabled = true;
@@ -909,7 +971,13 @@
       form.addEventListener("submit", event => {
         event.preventDefault();
         if (answered) return;
-        const result = typingResult(input.value, bird[answerLanguage]);
+        let result = typingResult(input.value, bird[answerLanguage]);
+        if (answerLanguage === "en" && /^common\s+/i.test(bird.en)) {
+          const shorterResult = typingResult(input.value, bird.en.replace(/^common\s+/i, ""));
+          if (shorterResult === "correct" || (result === "wrong" && shorterResult === "almost")) {
+            result = shorterResult;
+          }
+        }
         answered = true;
         if (result === "correct") correctCount++;
         else mistakes.add(bird);
@@ -959,19 +1027,22 @@
     function showHome() {
       game.classList.add("hidden");
       home.classList.remove("hidden");
+      homeButton.classList.add("hidden");
       message.textContent = "";
     }
 
     locationSelect.addEventListener("change", () => {
       birds = [];
       modeChooser.classList.add("hidden");
-      locationStatus.textContent = "Load recent eBird reports for this location to choose a game mode.";
+      locationAttribution.classList.remove("hidden");
+      locationStatus.textContent = "Load recent eBird reports for this location or use sample birds to choose a game mode.";
     });
     loadLocationButton.addEventListener("click", loadLocationBirds);
+    loadSampleButton.addEventListener("click", loadSampleBirds);
     document.querySelectorAll(".difficulty").forEach(button => {
       button.addEventListener("click", () => startMode(Number(button.dataset.mode)));
     });
-    document.getElementById("home-button").addEventListener("click", showHome);
+    homeButton.addEventListener("click", showHome);
   </script>
 </body>
 </html>
