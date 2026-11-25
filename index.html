@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bird Words — Memory Game</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: system-ui, sans-serif;
+      color: #23382d;
+      background: #f2f6ec;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 2rem 1rem; }
+    main { max-width: 760px; margin: auto; }
+    header { text-align: center; }
+    h1 { margin: .25rem 0; font-size: clamp(2rem, 6vw, 3rem); }
+    .subtitle { color: #526b5b; line-height: 1.5; }
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: .75rem;
+      margin: 1.75rem 0 1rem;
+    }
+    .stats { display: flex; gap: 1.25rem; font-weight: 600; }
+    button { font: inherit; cursor: pointer; }
+    .restart {
+      border: 0;
+      border-radius: .65rem;
+      background: #305f46;
+      color: white;
+      padding: .7rem 1rem;
+      font-weight: 700;
+    }
+    .restart:hover { background: #234a35; }
+    button:focus-visible { outline: 3px solid #d28a2f; outline-offset: 3px; }
+    .board {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: .75rem;
+    }
+    .card {
+      min-height: 105px;
+      padding: .5rem;
+      border: 2px solid #416f55;
+      border-radius: .85rem;
+      background: #416f55;
+      color: white;
+      font-size: clamp(.95rem, 3vw, 1.15rem);
+      font-weight: 700;
+      overflow-wrap: anywhere;
+    }
+    .card:not(:disabled):hover { background: #305f46; }
+    .card.revealed, .card.matched {
+      background: #fffdf6;
+      color: #23382d;
+      border-color: #b7cdb5;
+    }
+    .card.matched {
+      background: #dcefd9;
+      border-color: #83b782;
+      cursor: default;
+      opacity: 1;
+    }
+    .language {
+      display: block;
+      margin-bottom: .35rem;
+      color: #64816b;
+      font-size: .7rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    #message { min-height: 1.5em; text-align: center; font-weight: 700; color: #305f46; }
+    footer { margin-top: 1.5rem; text-align: center; color: #526b5b; font-size: .9rem; }
+    @media (max-width: 420px) {
+      .board { gap: .45rem; }
+      .card { min-height: 85px; }
+      .stats { gap: .75rem; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Bird Words</h1>
+      <p class="subtitle">Match each English bird name with its Polish translation.<br>Find all eight pairs!</p>
+    </header>
+    <div class="toolbar">
+      <div class="stats">
+        <span>Moves: <span id="moves">0</span></span>
+        <span>Pairs: <span id="pairs">0</span> / 8</span>
+      </div>
+      <button class="restart" id="restart" type="button">New game</button>
+    </div>
+    <div class="board" id="board" aria-label="Memory game cards"></div>
+    <p id="message" role="status" aria-live="polite"></p>
+    <footer>Pick two cards to reveal them. A move is one attempt at a pair.</footer>
+  </main>
+  <script>
+    const birds = [
+      { en: "Sparrow", pl: "Wróbel" },
+      { en: "Owl", pl: "Sowa" },
+      { en: "Eagle", pl: "Orzeł" },
+      { en: "Stork", pl: "Bocian" },
+      { en: "Swan", pl: "Łabędź" },
+      { en: "Woodpecker", pl: "Dzięcioł" },
+      { en: "Crow", pl: "Wrona" },
+      { en: "Seagull", pl: "Mewa" }
+    ];
+
+    const board = document.getElementById("board");
+    const movesDisplay = document.getElementById("moves");
+    const pairsDisplay = document.getElementById("pairs");
+    const message = document.getElementById("message");
+    let selected = [];
+    let moves = 0;
+    let pairs = 0;
+    let hideTimer = null;
+    let locked = false;
+
+    function shuffle(cards) {
+      for (let i = cards.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [cards[i], cards[j]] = [cards[j], cards[i]];
+      }
+      return cards;
+    }
+
+    function setCardFace(button, card, revealed) {
+      button.classList.toggle("revealed", revealed);
+      button.replaceChildren();
+      if (revealed) {
+        const language = document.createElement("span");
+        language.className = "language";
+        language.textContent = card.lang === "en" ? "English" : "Polski";
+        const word = document.createElement("span");
+        word.lang = card.lang;
+        word.textContent = card.word;
+        button.append(language, word);
+        button.setAttribute("aria-label", `${language.textContent}: ${card.word}`);
+      } else {
+        button.textContent = "?";
+        button.setAttribute("aria-label", "Hidden card");
+      }
+    }
+
+    function chooseCard(button, card) {
+      if (locked || button.disabled || selected.some(item => item.button === button)) return;
+      setCardFace(button, card, true);
+      selected.push({ button, card });
+      if (selected.length < 2) return;
+
+      movesDisplay.textContent = ++moves;
+      const [first, second] = selected;
+      if (first.card.id === second.card.id && first.card.lang !== second.card.lang) {
+        for (const item of selected) {
+          item.button.classList.add("matched");
+          item.button.disabled = true;
+        }
+        pairsDisplay.textContent = ++pairs;
+        selected = [];
+        message.textContent = pairs === birds.length
+          ? `Well done! You found all ${pairs} pairs in ${moves} moves.`
+          : "A match!";
+      } else {
+        locked = true;
+        message.textContent = "Not a match. Try again!";
+        hideTimer = setTimeout(() => {
+          setCardFace(first.button, first.card, false);
+          setCardFace(second.button, second.card, false);
+          selected = [];
+          locked = false;
+          hideTimer = null;
+        }, 1000);
+      }
+    }
+
+    function newGame() {
+      if (hideTimer !== null) clearTimeout(hideTimer);
+      hideTimer = null;
+      selected = [];
+      moves = 0;
+      pairs = 0;
+      locked = false;
+      movesDisplay.textContent = moves;
+      pairsDisplay.textContent = pairs;
+      message.textContent = "";
+      board.replaceChildren();
+      const cards = birds.flatMap((bird, id) => [
+        { id, lang: "en", word: bird.en },
+        { id, lang: "pl", word: bird.pl }
+      ]);
+      for (const card of shuffle(cards)) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "card";
+        setCardFace(button, card, false);
+        button.addEventListener("click", () => chooseCard(button, card));
+        board.append(button);
+      }
+    }
+
+    document.getElementById("restart").addEventListener("click", newGame);
+    newGame();
+  </script>
+</body>
+</html>
