@@ -18,7 +18,13 @@
     h1 { margin: .25rem 0; font-size: clamp(2rem, 6vw, 3rem); }
     h2 { margin: 0; font-size: 1.35rem; }
     .subtitle { color: #a7b8ab; line-height: 1.5; }
-    .difficulty-list { display: grid; gap: .75rem; margin-top: 2rem; }
+    .location-controls { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: .75rem; margin: 1rem 0 .5rem; }
+    .location-field { display: grid; gap: .35rem; font-weight: 700; }
+    select { min-height: 2.8rem; padding: .5rem; border: 2px solid #506e59; border-radius: .5rem; background: #202b24; color: #e6eee8; font: inherit; }
+    #location-status { min-height: 1.5em; color: #9cc9a5; }
+    .attribution { color: #a7b8ab; text-align: center; font-size: .85rem; }
+    a { color: #a7d6b1; }
+    .difficulty-list { display: grid; gap: .75rem; margin-top: 1rem; }
     .difficulty, .primary, .secondary, .answer, .connect-item {
       border-radius: .65rem;
       padding: .8rem 1rem;
@@ -78,6 +84,7 @@
     .hidden { display: none; }
     @media (max-width: 420px) {
       body { padding: 1.25rem .75rem; }
+      .location-controls { grid-template-columns: 1fr; }
       .answers { grid-template-columns: 1fr; }
       .connect-columns { gap: .45rem; }
       .connect-item { padding: .65rem .45rem; }
@@ -90,13 +97,27 @@
       <h1>Bird Words</h1>
       <p class="subtitle">Learn bird names in English and Polish.</p>
     </header>
-    <section id="home" aria-labelledby="choose-title">
-      <h2 id="choose-title">Choose a difficulty</h2>
-      <div class="difficulty-list">
-        <button class="difficulty" type="button" data-mode="0">0 — Starter show<span>Read the Polish name and reveal its English translation.</span></button>
-        <button class="difficulty" type="button" data-mode="1">1 — Pick a translation<span>Choose the correct English name from four options.</span></button>
-        <button class="difficulty" type="button" data-mode="2">2 — Connect<span>Match each Polish name with its English translation.</span></button>
-        <button class="difficulty" type="button" data-mode="3">3 — Type it in<span>Type the translation of each bird name.</span></button>
+    <section id="home" aria-labelledby="location-title">
+      <h2 id="location-title">Choose a location</h2>
+      <div class="location-controls">
+        <label class="location-field" for="location-select">Recent bird reports near
+          <select id="location-select">
+            <option value="biebrza">Biebrzański Park Narodowy (50 km radius)</option>
+            <option value="krakow">Kraków (30 km radius)</option>
+          </select>
+        </label>
+        <button class="primary" id="load-location" type="button">Load birds</button>
+      </div>
+      <p id="location-status" role="status" aria-live="polite">Load recent eBird reports to choose a game mode.</p>
+      <p class="attribution">Bird observations from <a href="https://ebird.org" target="_blank" rel="noopener noreferrer">eBird</a> (last 30 days).</p>
+      <div id="mode-chooser" class="hidden" aria-labelledby="choose-title">
+        <h2 id="choose-title">Choose a difficulty</h2>
+        <div class="difficulty-list">
+          <button class="difficulty" type="button" data-mode="0">0 — Starter show<span>Read the Polish name and reveal its English translation.</span></button>
+          <button class="difficulty" type="button" data-mode="1">1 — Pick a translation<span>Choose the correct English name from four options.</span></button>
+          <button class="difficulty" type="button" data-mode="2">2 — Connect<span>Match each Polish name with its English translation.</span></button>
+          <button class="difficulty" type="button" data-mode="3">3 — Type it in<span>Type the translation of each bird name.</span></button>
+        </div>
       </div>
     </section>
     <section id="game" class="hidden" aria-labelledby="mode-title">
@@ -111,29 +132,90 @@
     </section>
   </main>
   <script>
-    const birds = [
-      { en: "Sparrow", pl: "Wróbel" },
-      { en: "Owl", pl: "Sowa" },
-      { en: "Eagle", pl: "Orzeł" },
-      { en: "Stork", pl: "Bocian" },
-      { en: "Swan", pl: "Łabędź" },
-      { en: "Woodpecker", pl: "Dzięcioł" },
-      { en: "Crow", pl: "Wrona" },
-      { en: "Seagull", pl: "Mewa" }
-    ];
+    const ebirdProxyUrl = "https://bird-words-ebird-proxy.protoooli.workers.dev";
+    const polishNames = new Map([
+      ["Barn Swallow", "Dymówka"],
+      ["Black-headed Gull", "Śmieszka"],
+      ["Common Blackbird", "Kos"],
+      ["Common Buzzard", "Myszołów"],
+      ["Common Chaffinch", "Zięba"],
+      ["Common Chiffchaff", "Pierwiosnek"],
+      ["Common Crane", "Żuraw"],
+      ["Common Cuckoo", "Kukułka"],
+      ["Common Kestrel", "Pustułka"],
+      ["Common Linnet", "Makolągwa"],
+      ["Common Moorhen", "Kura wodna"],
+      ["Common Pheasant", "Bażant"],
+      ["Common Reed Bunting", "Potrzos"],
+      ["Common Snipe", "Kszyk"],
+      ["Common Starling", "Szpak"],
+      ["Common Swift", "Jerzyk"],
+      ["Common Tern", "Rybitwa rzeczna"],
+      ["Common Teal", "Cyraneczka"],
+      ["Common Gull", "Mewa pospolita"],
+      ["Common Wood Pigeon", "Grzywacz"],
+      ["Common Wood-Pigeon", "Grzywacz"],
+      ["Eurasian Blackcap", "Kapturka"],
+      ["Eurasian Blue Tit", "Modraszka"],
+      ["Eurasian Collared-Dove", "Sierpówka"],
+      ["Eurasian Coot", "Łyska"],
+      ["Eurasian Jackdaw", "Kawka"],
+      ["Eurasian Jay", "Sójka"],
+      ["Eurasian Magpie", "Sroka"],
+      ["Eurasian Nuthatch", "Kowalik"],
+      ["Eurasian Sparrowhawk", "Krogulec"],
+      ["Eurasian Treecreeper", "Pełzacz leśny"],
+      ["Eurasian Tree Sparrow", "Mazurek"],
+      ["Eurasian Wigeon", "Świstun"],
+      ["Eurasian Wren", "Strzyżyk"],
+      ["European Greenfinch", "Dzwoniec"],
+      ["European Robin", "Rudzik"],
+      ["European Goldfinch", "Szczygieł"],
+      ["Fieldfare", "Kwiczoł"],
+      ["Great Cormorant", "Kormoran"],
+      ["Great Crested Grebe", "Perkoz dwuczuby"],
+      ["Great Egret", "Czapla biała"],
+      ["Great Spotted Woodpecker", "Dzięcioł duży"],
+      ["Great Tit", "Bogatka"],
+      ["Gray Heron", "Czapla siwa"],
+      ["Graylag Goose", "Gęgawa"],
+      ["Hooded Crow", "Wrona siwa"],
+      ["Herring Gull", "Mewa srebrzysta"],
+      ["Common House-Martin", "Oknówka"],
+      ["House Martin", "Oknówka"],
+      ["House Sparrow", "Wróbel"],
+      ["Little Grebe", "Perkozek"],
+      ["Mallard", "Krzyżówka"],
+      ["Common Pochard", "Głowienka"],
+      ["Mute Swan", "Łabędź niemy"],
+      ["Northern Lapwing", "Czajka"],
+      ["Northern Shoveler", "Płaskonos"],
+      ["Redwing", "Droździk"],
+      ["Song Thrush", "Drozd śpiewak"],
+      ["White Stork", "Bocian biały"],
+      ["White Wagtail", "Pliszka siwa"],
+      ["White-tailed Eagle", "Bielik"],
+      ["Common Raven", "Kruk"],
+      ["Yellowhammer", "Trznadel"]
+    ]);
     const modes = [
       "0 — Starter show",
       "1 — Pick a translation",
       "2 — Connect",
       "3 — Type it in"
     ];
+    let birds = [];
     const home = document.getElementById("home");
+    const modeChooser = document.getElementById("mode-chooser");
     const game = document.getElementById("game");
     const modeTitle = document.getElementById("mode-title");
     const progress = document.getElementById("progress");
     const activity = document.getElementById("activity");
     const message = document.getElementById("message");
     const controls = document.getElementById("controls");
+    const locationSelect = document.getElementById("location-select");
+    const locationStatus = document.getElementById("location-status");
+    const loadLocationButton = document.getElementById("load-location");
     let round = [];
     let mode = 0;
     let index = 0;
@@ -158,6 +240,52 @@
       button.textContent = text;
       button.addEventListener("click", onClick);
       return button;
+    }
+
+    async function loadLocationBirds() {
+      if (!ebirdProxyUrl) {
+        locationStatus.textContent = "Configure the Cloudflare Worker URL in index.html before loading eBird data.";
+        return;
+      }
+
+      birds = [];
+      modeChooser.classList.add("hidden");
+      loadLocationButton.disabled = true;
+      locationSelect.disabled = true;
+      locationStatus.textContent = "Loading recent eBird observations…";
+      try {
+        const url = new URL("/observations", ebirdProxyUrl);
+        url.searchParams.set("location", locationSelect.value);
+        const response = await fetch(url);
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.error || `The bird data request failed (HTTP ${response.status}).`);
+        }
+        if (!Array.isArray(data)) {
+          throw new Error("The eBird proxy returned an unexpected response.");
+        }
+
+        const translatedBirds = new Map();
+        for (const observation of data) {
+          const englishName = observation && observation.comName;
+          const polishName = polishNames.get(englishName);
+          if (polishName && !translatedBirds.has(englishName)) {
+            translatedBirds.set(englishName, { en: englishName, pl: polishName });
+          }
+        }
+        if (translatedBirds.size < 5) {
+          throw new Error(`Only ${translatedBirds.size} recently reported species have Polish names in the game. Try another location later.`);
+        }
+
+        birds = [...translatedBirds.values()];
+        locationStatus.textContent = `Loaded ${birds.length} translated species reported near ${locationSelect.selectedOptions[0].text} in the last 30 days.`;
+        modeChooser.classList.remove("hidden");
+      } catch (error) {
+        locationStatus.textContent = `Could not load bird data: ${error.message}`;
+      } finally {
+        loadLocationButton.disabled = false;
+        locationSelect.disabled = false;
+      }
     }
 
     function startMode(selectedMode) {
@@ -388,6 +516,12 @@
       message.textContent = "";
     }
 
+    locationSelect.addEventListener("change", () => {
+      birds = [];
+      modeChooser.classList.add("hidden");
+      locationStatus.textContent = "Load recent eBird reports for this location to choose a game mode.";
+    });
+    loadLocationButton.addEventListener("click", loadLocationBirds);
     document.querySelectorAll(".difficulty").forEach(button => {
       button.addEventListener("click", () => startMode(Number(button.dataset.mode)));
     });
