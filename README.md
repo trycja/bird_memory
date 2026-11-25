@@ -20,6 +20,8 @@ The location centers and search radii are configured in `worker.mjs`: Biebrzańs
 
 The page uses recent reports from the previous 30 days and currently includes Polish translations for a curated set of common species. Species without a translation are not offered in the game; add their English common name and Polish name to the `polishNames` map in `index.html`. The selected location needs at least five supported species in recent reports to start a round.
 
+In Starter show, the game looks up a photo by scientific name through Wikipedia and Wikimedia Commons after revealing the translation. A credit and license link appear with the photo. The photo illustrates the species and is not necessarily from the selected location; if a photo or its credit information is unavailable, the game continues without it.
+
 ## Tests
 
-Run the Cloudflare Worker unit tests with `node --test tests/worker.test.mjs`. They use Node's built-in test runner and do not require external packages.
+Run the Worker and photo lookup tests with `node --test tests/*.test.mjs`. They use Node's built-in test runner and do not require external packages.

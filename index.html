@@ -64,6 +64,10 @@
       font-size: clamp(1.5rem, 5vw, 2rem);
       font-weight: 700;
     }
+    .bird-photo { margin: 1rem auto; max-width: 500px; text-align: center; }
+    .bird-photo img { display: block; max-width: 100%; max-height: 350px; margin: auto; border-radius: .65rem; }
+    .bird-photo figcaption { margin-top: .5rem; color: #a7b8ab; font-size: .85rem; overflow-wrap: anywhere; }
+    .photo-status { text-align: center; color: #a7b8ab; }
     .answers { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; }
     .answer {
       min-height: 4rem;
@@ -270,7 +274,7 @@
           const englishName = observation && observation.comName;
           const polishName = polishNames.get(englishName);
           if (polishName && !translatedBirds.has(englishName)) {
-            translatedBirds.set(englishName, { en: englishName, pl: polishName });
+            translatedBirds.set(englishName, { en: englishName, pl: polishName, scientificName: observation.sciName });
           }
         }
         if (translatedBirds.size < 5) {
@@ -327,6 +331,82 @@
       if (mode === 3) renderTyping();
     }
 
+    async function showBirdPhoto(bird, container) {
+      if (!bird.scientificName) {
+        container.textContent = "Photo unavailable: no scientific name for this bird.";
+        return;
+      }
+
+      try {
+        const wikipediaUrl = new URL("https://en.wikipedia.org/w/api.php");
+        wikipediaUrl.search = new URLSearchParams({
+          action: "query", prop: "pageimages", titles: bird.scientificName,
+          redirects: "1", piprop: "name", pilicense: "free", format: "json", origin: "*"
+        });
+        const pageResponse = await fetch(wikipediaUrl);
+        if (!pageResponse.ok) throw new Error(`Wikipedia returned HTTP ${pageResponse.status}.`);
+        const pageData = await pageResponse.json();
+        const page = Object.values(pageData.query.pages)[0];
+        if (!page.pageimage) throw new Error("No suitable image was found.");
+
+        const commonsUrl = new URL("https://commons.wikimedia.org/w/api.php");
+        commonsUrl.search = new URLSearchParams({
+          action: "query", prop: "imageinfo", titles: `File:${page.pageimage}`,
+          iiprop: "url|extmetadata", iiurlwidth: "500", format: "json", origin: "*"
+        });
+        const imageResponse = await fetch(commonsUrl);
+        if (!imageResponse.ok) throw new Error(`Wikimedia Commons returned HTTP ${imageResponse.status}.`);
+        const imageData = await imageResponse.json();
+        const file = Object.values(imageData.query.pages)[0];
+        const info = file.imageinfo && file.imageinfo[0];
+        const metadata = info && info.extmetadata;
+        const artistHtml = metadata && metadata.Artist && metadata.Artist.value;
+        const license = metadata && metadata.LicenseShortName && metadata.LicenseShortName.value;
+        const licenseUrl = metadata && metadata.LicenseUrl && metadata.LicenseUrl.value;
+        const artist = artistHtml && new DOMParser().parseFromString(artistHtml, "text/html").body.textContent.trim();
+        const attributionHtml = metadata && metadata.Attribution && metadata.Attribution.value;
+        const attribution = attributionHtml && new DOMParser().parseFromString(attributionHtml, "text/html").body.textContent.trim();
+        if (!info || !info.thumburl || !info.descriptionurl || !artist || !license || !licenseUrl) {
+          throw new Error("Image credit or license information is missing.");
+        }
+        const imageUrl = new URL(info.thumburl);
+        const sourceUrl = new URL(info.descriptionurl);
+        const licenseLinkUrl = new URL(licenseUrl);
+        if (imageUrl.protocol !== "https:" || !["upload.wikimedia.org", "thumb.wikimedia.org"].includes(imageUrl.hostname)
+          || sourceUrl.protocol !== "https:" || sourceUrl.hostname !== "commons.wikimedia.org"
+          || licenseLinkUrl.protocol !== "https:" || licenseLinkUrl.hostname !== "creativecommons.org"
+          || !/^\/(?:licenses\/(?:by|by-sa)|publicdomain\/(?:zero|mark))\/[0-9.]+\/?$/.test(licenseLinkUrl.pathname)) {
+          throw new Error("Image or credit links are not valid.");
+        }
+
+        const figure = document.createElement("figure");
+        figure.className = "bird-photo";
+        const image = document.createElement("img");
+        image.alt = `Photo of ${bird.en}`;
+        image.addEventListener("error", () => {
+          if (container.isConnected) container.textContent = "Photo unavailable: the image could not be loaded.";
+        });
+        image.src = imageUrl.href;
+        const caption = document.createElement("figcaption");
+        const source = document.createElement("a");
+        source.href = sourceUrl.href;
+        source.target = "_blank";
+        source.rel = "noopener noreferrer";
+        source.textContent = file.title.replace(/^File:/, "");
+        const licenseLink = document.createElement("a");
+        licenseLink.href = licenseLinkUrl.href;
+        licenseLink.target = "_blank";
+        licenseLink.rel = "noopener noreferrer";
+        licenseLink.textContent = license;
+        const credit = attribution && attribution !== artist ? `${artist} (${attribution})` : artist;
+        caption.append(source, document.createTextNode(` by ${credit} · resized · `), licenseLink);
+        figure.append(image, caption);
+        container.replaceChildren(figure);
+      } catch (error) {
+        container.textContent = `Photo unavailable: ${error.message}`;
+      }
+    }
+
     function renderShow() {
       const bird = round[index];
       const prompt = document.createElement("p");
@@ -342,6 +422,12 @@
         answer.lang = "en";
         answer.textContent = bird.en;
         activity.append(answer);
+        const photo = document.createElement("div");
+        photo.className = "photo-status";
+        photo.setAttribute("role", "status");
+        photo.textContent = "Loading bird photo…";
+        activity.append(photo);
+        showBirdPhoto(bird, photo);
         correctCount++;
         message.textContent = "Translation revealed.";
         controls.replaceChildren(makeButton(
