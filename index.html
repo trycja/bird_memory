@@ -6,17 +6,38 @@
   <title>Bird Words — Memory Game</title>
   <style>
     :root {
-      color-scheme: light;
+      color-scheme: dark;
       font-family: system-ui, sans-serif;
-      color: #23382d;
-      background: #f2f6ec;
+      color: #e6eee8;
+      background: #111915;
     }
     * { box-sizing: border-box; }
     body { margin: 0; padding: 2rem 1rem; }
     main { max-width: 760px; margin: auto; }
     header { text-align: center; }
     h1 { margin: .25rem 0; font-size: clamp(2rem, 6vw, 3rem); }
-    .subtitle { color: #526b5b; line-height: 1.5; }
+    h2 { margin: 0; font-size: 1.35rem; }
+    .subtitle { color: #a7b8ab; line-height: 1.5; }
+    .difficulty-list { display: grid; gap: .75rem; margin-top: 2rem; }
+    .difficulty, .primary, .secondary, .answer, .connect-item {
+      border-radius: .65rem;
+      padding: .8rem 1rem;
+      font: inherit;
+      font-weight: 700;
+    }
+    button { cursor: pointer; }
+    button:focus-visible, input:focus-visible {
+      outline: 3px solid #f0bf62;
+      outline-offset: 3px;
+    }
+    .difficulty, .primary {
+      border: 0;
+      background: #28523a;
+      color: #f4f8f4;
+    }
+    .difficulty { text-align: left; }
+    .difficulty:hover, .primary:hover { background: #356a49; }
+    .difficulty span { display: block; margin-top: .2rem; font-weight: 400; }
     .toolbar {
       display: flex;
       align-items: center;
@@ -25,60 +46,41 @@
       gap: .75rem;
       margin: 1.75rem 0 1rem;
     }
-    .stats { display: flex; gap: 1.25rem; font-weight: 600; }
-    button { font: inherit; cursor: pointer; }
-    .restart {
-      border: 0;
-      border-radius: .65rem;
-      background: #305f46;
-      color: white;
-      padding: .7rem 1rem;
+    .secondary {
+      border: 2px solid #506e59;
+      background: #202b24;
+      color: #e6eee8;
+    }
+    .secondary:hover, .answer:hover, .connect-item:hover { background: #2b3b30; }
+    .prompt {
+      margin: 1.5rem 0;
+      text-align: center;
+      font-size: clamp(1.5rem, 5vw, 2rem);
       font-weight: 700;
     }
-    .restart:hover { background: #234a35; }
-    button:focus-visible { outline: 3px solid #d28a2f; outline-offset: 3px; }
-    .board {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: .75rem;
+    .answers { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; }
+    .answer {
+      min-height: 4rem;
+      border: 2px solid #506e59;
+      background: #202b24;
+      color: #e6eee8;
     }
-    .card {
-      min-height: 105px;
-      padding: .5rem;
-      border: 2px solid #416f55;
-      border-radius: .85rem;
-      background: #416f55;
-      color: white;
-      font-size: clamp(.95rem, 3vw, 1.15rem);
-      font-weight: 700;
-      overflow-wrap: anywhere;
-    }
-    .card:not(:disabled):hover { background: #305f46; }
-    .card.revealed, .card.matched {
-      background: #fffdf6;
-      color: #23382d;
-      border-color: #b7cdb5;
-    }
-    .card.matched {
-      background: #dcefd9;
-      border-color: #83b782;
-      cursor: default;
-      opacity: 1;
-    }
-    .language {
-      display: block;
-      margin-bottom: .35rem;
-      color: #64816b;
-      font-size: .7rem;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-    }
-    #message { min-height: 1.5em; text-align: center; font-weight: 700; color: #305f46; }
-    footer { margin-top: 1.5rem; text-align: center; color: #526b5b; font-size: .9rem; }
+    .answer:disabled { cursor: default; opacity: 1; }
+    .answer.correct, .connect-item.matched { background: #23442d; border-color: #6ca677; }
+    .answer.incorrect { background: #4a2b29; border-color: #bd766c; }
+    .connect-columns { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
+    .connect-list { display: grid; align-content: start; gap: .55rem; }
+    .connect-item { width: 100%; border: 2px solid #506e59; background: #202b24; color: #e6eee8; }
+    .connect-item[aria-pressed="true"] { outline: 3px solid #f0bf62; outline-offset: 2px; }
+    .connect-item.matched { cursor: default; }
+    input { min-height: 2.8rem; padding: .5rem; border: 2px solid #506e59; border-radius: .5rem; background: #202b24; color: #e6eee8; font: inherit; }
+    #message { min-height: 1.5em; text-align: center; font-weight: 700; color: #9cc9a5; }
+    .hidden { display: none; }
     @media (max-width: 420px) {
-      .board { gap: .45rem; }
-      .card { min-height: 85px; }
-      .stats { gap: .75rem; }
+      body { padding: 1.25rem .75rem; }
+      .answers { grid-template-columns: 1fr; }
+      .connect-columns { gap: .45rem; }
+      .connect-item { padding: .65rem .45rem; }
     }
   </style>
 </head>
@@ -86,18 +88,27 @@
   <main>
     <header>
       <h1>Bird Words</h1>
-      <p class="subtitle">Match each English bird name with its Polish translation.<br>Find all eight pairs!</p>
+      <p class="subtitle">Learn bird names in English and Polish.</p>
     </header>
-    <div class="toolbar">
-      <div class="stats">
-        <span>Moves: <span id="moves">0</span></span>
-        <span>Pairs: <span id="pairs">0</span> / 8</span>
+    <section id="home" aria-labelledby="choose-title">
+      <h2 id="choose-title">Choose a difficulty</h2>
+      <div class="difficulty-list">
+        <button class="difficulty" type="button" data-mode="0">0 — Starter show<span>Read the Polish name and reveal its English translation.</span></button>
+        <button class="difficulty" type="button" data-mode="1">1 — Pick a translation<span>Choose the correct English name from four options.</span></button>
+        <button class="difficulty" type="button" data-mode="2">2 — Connect<span>Match each Polish name with its English translation.</span></button>
+        <button class="difficulty" type="button" data-mode="3">3 — Type it in<span>Type the translation of each bird name.</span></button>
       </div>
-      <button class="restart" id="restart" type="button">New game</button>
-    </div>
-    <div class="board" id="board" aria-label="Memory game cards"></div>
-    <p id="message" role="status" aria-live="polite"></p>
-    <footer>Pick two cards to reveal them. A move is one attempt at a pair.</footer>
+    </section>
+    <section id="game" class="hidden" aria-labelledby="mode-title">
+      <div class="toolbar">
+        <h2 id="mode-title"></h2>
+        <button class="secondary" id="home-button" type="button">Choose difficulty</button>
+      </div>
+      <p id="progress"></p>
+      <div id="activity"></div>
+      <p id="message" role="status" aria-live="polite"></p>
+      <div id="controls"></div>
+    </section>
   </main>
   <script>
     const birds = [
@@ -110,101 +121,277 @@
       { en: "Crow", pl: "Wrona" },
       { en: "Seagull", pl: "Mewa" }
     ];
-
-    const board = document.getElementById("board");
-    const movesDisplay = document.getElementById("moves");
-    const pairsDisplay = document.getElementById("pairs");
+    const modes = [
+      "0 — Starter show",
+      "1 — Pick a translation",
+      "2 — Connect",
+      "3 — Type it in"
+    ];
+    const home = document.getElementById("home");
+    const game = document.getElementById("game");
+    const modeTitle = document.getElementById("mode-title");
+    const progress = document.getElementById("progress");
+    const activity = document.getElementById("activity");
     const message = document.getElementById("message");
-    let selected = [];
-    let moves = 0;
-    let pairs = 0;
-    let hideTimer = null;
-    let locked = false;
+    const controls = document.getElementById("controls");
+    let round = [];
+    let mode = 0;
+    let index = 0;
+    let correctCount = 0;
+    let answered = false;
+    let selectedSource = null;
+    let matched = new Set();
 
-    function shuffle(cards) {
-      for (let i = cards.length - 1; i > 0; i--) {
+    function shuffle(items) {
+      const shuffled = [...items];
+      for (let i = shuffled.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [cards[i], cards[j]] = [cards[j], cards[i]];
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
       }
-      return cards;
+      return shuffled;
     }
 
-    function setCardFace(button, card, revealed) {
-      button.classList.toggle("revealed", revealed);
-      button.replaceChildren();
-      if (revealed) {
-        const language = document.createElement("span");
-        language.className = "language";
-        language.textContent = card.lang === "en" ? "English" : "Polski";
-        const word = document.createElement("span");
-        word.lang = card.lang;
-        word.textContent = card.word;
-        button.append(language, word);
-        button.setAttribute("aria-label", `${language.textContent}: ${card.word}`);
-      } else {
-        button.textContent = "?";
-        button.setAttribute("aria-label", "Hidden card");
-      }
+    function makeButton(text, className, onClick) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = className;
+      button.textContent = text;
+      button.addEventListener("click", onClick);
+      return button;
     }
 
-    function chooseCard(button, card) {
-      if (locked || button.disabled || selected.some(item => item.button === button)) return;
-      setCardFace(button, card, true);
-      selected.push({ button, card });
-      if (selected.length < 2) return;
-
-      movesDisplay.textContent = ++moves;
-      const [first, second] = selected;
-      if (first.card.id === second.card.id && first.card.lang !== second.card.lang) {
-        for (const item of selected) {
-          item.button.classList.add("matched");
-          item.button.disabled = true;
-        }
-        pairsDisplay.textContent = ++pairs;
-        selected = [];
-        message.textContent = pairs === birds.length
-          ? `Well done! You found all ${pairs} pairs in ${moves} moves.`
-          : "A match!";
-      } else {
-        locked = true;
-        message.textContent = "Not a match. Try again!";
-        hideTimer = setTimeout(() => {
-          setCardFace(first.button, first.card, false);
-          setCardFace(second.button, second.card, false);
-          selected = [];
-          locked = false;
-          hideTimer = null;
-        }, 1000);
-      }
+    function startMode(selectedMode) {
+      mode = selectedMode;
+      round = shuffle(birds).slice(0, 5);
+      index = 0;
+      correctCount = 0;
+      answered = false;
+      selectedSource = null;
+      matched = new Set();
+      modeTitle.textContent = modes[mode];
+      home.classList.add("hidden");
+      game.classList.remove("hidden");
+      renderQuestion();
     }
 
-    function newGame() {
-      if (hideTimer !== null) clearTimeout(hideTimer);
-      hideTimer = null;
-      selected = [];
-      moves = 0;
-      pairs = 0;
-      locked = false;
-      movesDisplay.textContent = moves;
-      pairsDisplay.textContent = pairs;
+    function updateProgress() {
+      progress.textContent = mode === 2
+        ? `Matched ${matched.size} of ${round.length} pairs`
+        : `Bird ${index + 1} of ${round.length} · Correct: ${correctCount}`;
+    }
+
+    function finishRound() {
+      activity.replaceChildren();
+      progress.textContent = `Round complete · Correct: ${correctCount} of ${round.length}`;
+      message.textContent = "Great work! Choose another difficulty to play again.";
+      controls.replaceChildren(makeButton("Choose difficulty", "primary", showHome));
+    }
+
+    function renderQuestion() {
+      activity.replaceChildren();
+      controls.replaceChildren();
       message.textContent = "";
-      board.replaceChildren();
-      const cards = birds.flatMap((bird, id) => [
-        { id, lang: "en", word: bird.en },
-        { id, lang: "pl", word: bird.pl }
-      ]);
-      for (const card of shuffle(cards)) {
-        const button = document.createElement("button");
-        button.type = "button";
-        button.className = "card";
-        setCardFace(button, card, false);
-        button.addEventListener("click", () => chooseCard(button, card));
-        board.append(button);
-      }
+      answered = false;
+      updateProgress();
+      if (mode === 0) renderShow();
+      if (mode === 1) renderChoice();
+      if (mode === 2) renderConnect();
+      if (mode === 3) renderTyping();
     }
 
-    document.getElementById("restart").addEventListener("click", newGame);
-    newGame();
+    function renderShow() {
+      const bird = round[index];
+      const prompt = document.createElement("p");
+      prompt.className = "prompt";
+      prompt.lang = "pl";
+      prompt.textContent = bird.pl;
+      activity.append(prompt);
+      controls.append(makeButton("Show English", "primary", () => {
+        if (answered) return;
+        answered = true;
+        const answer = document.createElement("p");
+        answer.className = "prompt";
+        answer.lang = "en";
+        answer.textContent = bird.en;
+        activity.append(answer);
+        correctCount++;
+        message.textContent = "Translation revealed.";
+        controls.replaceChildren(makeButton(
+          index === round.length - 1 ? "Finish round" : "Next bird",
+          "primary",
+          nextQuestion
+        ));
+      }));
+    }
+
+    function renderChoice() {
+      const bird = round[index];
+      const prompt = document.createElement("p");
+      prompt.className = "prompt";
+      prompt.lang = "pl";
+      prompt.textContent = bird.pl;
+      activity.append(prompt);
+      const options = shuffle([bird, ...shuffle(birds.filter(item => item !== bird)).slice(0, 3)]);
+      const answers = document.createElement("div");
+      answers.className = "answers";
+      for (const option of options) {
+        const button = makeButton(option.en, "answer", () => {
+          if (answered) return;
+          answered = true;
+          const isCorrect = option === bird;
+          if (isCorrect) correctCount++;
+          button.classList.add(isCorrect ? "correct" : "incorrect");
+          for (const choice of answers.children) choice.disabled = true;
+          message.textContent = isCorrect ? "Correct!" : `Not quite. The answer is ${bird.en}.`;
+          showNextButton();
+        });
+        button.lang = "en";
+        answers.append(button);
+      }
+      activity.append(answers);
+    }
+
+    function renderConnect() {
+      const instructions = document.createElement("p");
+      instructions.textContent = "Drag a Polish name to its English translation, or select a name and then its translation.";
+      const columns = document.createElement("div");
+      columns.className = "connect-columns";
+      const polishList = document.createElement("div");
+      polishList.className = "connect-list";
+      polishList.setAttribute("aria-label", "Polish bird names");
+      const englishList = document.createElement("div");
+      englishList.className = "connect-list";
+      englishList.setAttribute("aria-label", "English bird names");
+
+      for (const bird of shuffle(round)) {
+        const source = makeButton(bird.pl, "connect-item", () => {
+          if (matched.has(bird)) return;
+          selectedSource = bird;
+          for (const item of polishList.children) item.setAttribute("aria-pressed", String(item === source));
+          message.textContent = `Selected ${bird.pl}. Choose its English translation.`;
+        });
+        source.lang = "pl";
+        source.draggable = true;
+        source.setAttribute("aria-pressed", "false");
+        source.addEventListener("dragstart", event => {
+          event.dataTransfer.setData("text/plain", String(round.indexOf(bird)));
+          event.dataTransfer.effectAllowed = "move";
+          selectedSource = bird;
+        });
+        polishList.append(source);
+
+        const target = makeButton(bird.en, "connect-item", () => {
+          if (selectedSource) connectPair(selectedSource, bird);
+        });
+        target.lang = "en";
+        target.addEventListener("dragover", event => {
+          if (!matched.has(bird)) event.preventDefault();
+        });
+        target.addEventListener("drop", event => {
+          event.preventDefault();
+          const sourceIndex = Number(event.dataTransfer.getData("text/plain"));
+          const draggedBird = round[sourceIndex];
+          if (draggedBird) connectPair(draggedBird, bird);
+        });
+        englishList.append(target);
+      }
+      columns.append(polishList, englishList);
+      activity.append(instructions, columns);
+      updateProgress();
+    }
+
+    function connectPair(source, target) {
+      if (matched.has(source) || matched.has(target)) return;
+      if (source !== target) {
+        selectedSource = null;
+        const selectedButton = activity.querySelector('.connect-item[lang="pl"][aria-pressed="true"]');
+        if (selectedButton) selectedButton.setAttribute("aria-pressed", "false");
+        message.textContent = `Those names do not match. Try again.`;
+        return;
+      }
+      matched.add(source);
+      correctCount++;
+      selectedSource = null;
+      const items = activity.querySelectorAll(".connect-item");
+      for (const item of items) {
+        if ((item.lang === "pl" && item.textContent === source.pl)
+          || (item.lang === "en" && item.textContent === source.en)) {
+          item.classList.add("matched");
+          item.disabled = true;
+          item.setAttribute("aria-pressed", "false");
+        }
+      }
+      updateProgress();
+      message.textContent = `Matched ${source.pl} with ${source.en}.`;
+      if (matched.size === round.length) finishRound();
+    }
+
+    function renderTyping() {
+      const bird = round[index];
+      const promptLanguage = Math.random() < 0.5 ? "en" : "pl";
+      const answerLanguage = promptLanguage === "en" ? "pl" : "en";
+      const prompt = document.createElement("p");
+      prompt.className = "prompt";
+      prompt.lang = promptLanguage;
+      prompt.textContent = bird[promptLanguage];
+      const form = document.createElement("form");
+      const input = document.createElement("input");
+      input.type = "text";
+      input.autocomplete = "off";
+      input.setAttribute("aria-label", `Type the ${answerLanguage === "en" ? "English" : "Polish"} translation`);
+      input.required = true;
+      const submit = document.createElement("button");
+      submit.type = "submit";
+      submit.className = "primary";
+      submit.textContent = "Check answer";
+      form.append(input, document.createTextNode(" "), submit);
+      form.addEventListener("submit", event => {
+        event.preventDefault();
+        if (answered) return;
+        const expected = bird[answerLanguage].toLocaleLowerCase().trim();
+        const actual = input.value.toLocaleLowerCase().trim();
+        const isCorrect = actual === expected;
+        answered = true;
+        if (isCorrect) correctCount++;
+        input.disabled = true;
+        submit.disabled = true;
+        message.textContent = isCorrect
+          ? "Correct!"
+          : `The correct answer is ${bird[answerLanguage]}.`;
+        showNextButton();
+      });
+      activity.append(prompt, form);
+      input.focus();
+    }
+
+    function showNextButton() {
+      controls.replaceChildren(makeButton(
+        index === round.length - 1 ? "Finish round" : "Next bird",
+        "primary",
+        nextQuestion
+      ));
+    }
+
+    function nextQuestion() {
+      if (!answered) return;
+      if (index === round.length - 1) {
+        finishRound();
+        return;
+      }
+      index++;
+      renderQuestion();
+    }
+
+    function showHome() {
+      game.classList.add("hidden");
+      home.classList.remove("hidden");
+      message.textContent = "";
+    }
+
+    document.querySelectorAll(".difficulty").forEach(button => {
+      button.addEventListener("click", () => startMode(Number(button.dataset.mode)));
+    });
+    document.getElementById("home-button").addEventListener("click", showHome);
   </script>
 </body>
 </html>
