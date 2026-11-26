@@ -24,9 +24,11 @@
       margin: 0;
       padding: 2rem 1rem;
       min-height: 100vh;
+      display: flex;
+      flex-direction: column;
       background: linear-gradient(#03100f66, #03100f66), url("assets/background.jpg") center / cover no-repeat fixed;
     }
-    main { max-width: 760px; margin: auto; }
+    main { width: 100%; max-width: 760px; margin: 0 auto; flex: 1; display: flex; flex-direction: column; }
     header { margin: 0 0 2rem; text-align: left; }
     h1 {
       margin: 0;
@@ -39,6 +41,7 @@
       text-transform: uppercase;
     }
     h2 { margin: 0; font-size: 1.35rem; font-weight: 600; }
+    #mode-title { color: #e8e3dc; font-family: "Segoe UI Semilight", "Segoe UI", Inter, sans-serif; font-weight: 400; text-transform: uppercase; }
     #home, #game {
       border: 1px solid #d5f3ed2e;
       border-radius: 1.5rem;
@@ -46,7 +49,7 @@
       padding: clamp(1rem, 3vw, 1.75rem);
     }
     #home {
-      background: #07191d80;
+      background: #07191d0d;
       -webkit-backdrop-filter: blur(20px);
       backdrop-filter: blur(20px);
     }
@@ -75,8 +78,11 @@
       font: inherit;
       font-size: 1rem;
     }
-    .attribution { color: #cbd0da; text-align: center; font-size: .85rem; }
+    footer { margin-top: auto; padding-top: 1.5rem; }
+    .attribution { margin: 0; color: #cbd0da; text-align: center; font-size: .85rem; }
     a { color: #a9dfe9; }
+    h1 a { color: inherit; text-decoration: none; }
+    h1 a:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
     .status-filter { margin: 1rem 0 1.5rem; padding: 1rem; border: 1px solid #c9e8e640; border-radius: .85rem; }
     .status-filter legend { padding: 0 .4rem; font-weight: 700; }
     .status-filter p { margin: .35rem 0 .75rem; color: #cbd0da; }
@@ -103,9 +109,21 @@
     }
     .primary { background: #1e4937db; color: #f2f8fb; }
     .difficulty {
-      color: #f2f8fb;
+      --gradient-opacity: .8;
+      --difficulty-background: linear-gradient(110deg, rgba(56, 89, 182, var(--gradient-opacity)), rgba(1, 70, 37, var(--gradient-opacity)));
+      background: var(--difficulty-background);
+      border-color: #b6b9ff88;
+      border-radius: 999px;
+      padding-inline: 1.3rem;
+      box-shadow: 0 8px 24px #703a9c66, inset 0 1px 0 #ffffff44;
+      color: #e5e7eb;
+      font-weight: 700;
       text-align: left;
+      text-transform: lowercase;
     }
+    .difficulty:nth-child(2) { --gradient-opacity: .65; }
+    .difficulty:nth-child(3) { --gradient-opacity: .5; }
+    .difficulty:nth-child(4) { --gradient-opacity: .35; }
     .difficulty:not(:disabled):hover, .primary:not(:disabled):hover,
     .secondary:not(:disabled):hover, .answer:not(:disabled):hover, .connect-item:not(:disabled):hover {
       background: #305d48ed;
@@ -116,8 +134,11 @@
       background: #44745bef;
       border-color: #ffffffcc;
     }
+    .difficulty:not(:disabled):hover, .difficulty:not(:disabled):active {
+      background: var(--difficulty-background);
+    }
     .primary:disabled, .difficulty:disabled { opacity: .6; cursor: not-allowed; }
-    .difficulty span { display: block; margin-top: .2rem; font-weight: 500; line-height: 1.4; }
+    .difficulty span { display: block; margin-top: .2rem; font-family: "Segoe UI Semilight", "Segoe UI", Inter, sans-serif; font-weight: 400; line-height: 1.4; }
     #home-button:not(.hidden) {
       display: inline-flex;
       align-items: center;
@@ -150,15 +171,19 @@
       max-width: 100%;
     }
     #fixed-controls button { pointer-events: auto; }
-    #controls .starter-nav { min-width: 8.5rem; }
-    .reserved-button { visibility: hidden; }
+    #controls .starter-nav {
+      min-width: 8.5rem;
+      background: linear-gradient(110deg, rgba(56, 89, 182, .2), rgba(1, 70, 37, .2));
+      font-family: "Segoe UI", Inter, sans-serif;
+      font-weight: 400;
+    }
     .toolbar {
       display: flex;
       align-items: center;
       justify-content: space-between;
       flex-wrap: wrap;
       gap: .75rem;
-      margin: 1.75rem 0 1rem;
+      margin: 0 0 1rem;
     }
     .secondary {
       background: #173943de;
@@ -174,6 +199,7 @@
       color: #edf8ef;
       font-weight: 700;
     }
+    #progress.hidden { display: none; }
     .prompt {
       margin: 1.5rem 0;
       text-align: center;
@@ -188,6 +214,10 @@
     .bird-photo img { display: block; max-width: 100%; max-height: 350px; margin: auto; border: 1px solid #c9e8e640; border-radius: 1rem; box-shadow: 0 12px 30px #00000055; }
     .bird-photo figcaption { margin-top: .75rem; color: #cbd0da; font-size: 8px; overflow-wrap: anywhere; }
     .photo-status { text-align: center; color: #cbd0da; }
+    .bird-sound { margin: 1rem auto; text-align: center; color: #cbd0da; }
+    .bird-sound audio { display: block; max-width: 100%; margin: .5rem auto; }
+    .bird-sound p { margin: .5rem 0; overflow-wrap: anywhere; }
+    .bird-sound-credit { font-size: .75rem; }
     .answers { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .85rem; }
     .answer {
       min-height: 4rem;
@@ -196,21 +226,44 @@
     }
     .answer:disabled { cursor: default; opacity: 1; }
     .answer.correct { background: linear-gradient(135deg, #254e40, #246f52); border-color: #9cebc2; }
-    .connect-item.matched { background: linear-gradient(135deg, #3e315e, #58447b); border-color: #c8b3ed; }
     .answer.incorrect { background: linear-gradient(135deg, #5b303c, #774148); border-color: #ffb9b3; }
     .connect-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; }
     .connect-list { display: grid; min-width: 0; align-content: start; gap: .75rem; }
-    .connect-item { width: 100%; color: #f2f8fb; overflow-wrap: anywhere; }
+    .connect-item {
+      --connect-opacity: .75;
+      --connect-start: 56, 89, 182;
+      --connect-end: 29, 80, 110;
+      width: 100%;
+      background: linear-gradient(90deg, rgba(var(--connect-start), var(--connect-opacity)), rgba(var(--connect-end), var(--connect-opacity)));
+      color: #f2f8fb;
+      overflow-wrap: anywhere;
+    }
+    .connect-item[lang="en"] { --connect-start: 29, 80, 110; --connect-end: 1, 70, 37; }
+    .connect-item:nth-child(2) { --connect-opacity: .7; }
+    .connect-item:nth-child(3) { --connect-opacity: .65; }
+    .connect-item:nth-child(4) { --connect-opacity: .6; }
+    .connect-item:nth-child(5) { --connect-opacity: .55; }
+    .connect-item:not(:disabled):hover { --connect-opacity: .85; }
+    .connect-item:not(:disabled):active { --connect-opacity: .95; }
     .connect-item[aria-pressed="true"] { outline: 3px solid #a9dfe9; outline-offset: 2px; }
-    .connect-item.matched { cursor: default; }
+    .connect-item.matched {
+      background: linear-gradient(90deg, #177348cc, #07553ecc);
+      border: 2px solid #b1f3cc;
+      cursor: default;
+    }
+    .connect-item.matched[lang="en"] { background: linear-gradient(90deg, #07553ecc, #013138cc); }
+    .connect-item.matched::after { content: " ✓"; }
     .typing-form { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: .5rem; }
     input::placeholder { color: #bfc6d1; opacity: 1; }
     .typing-hint { white-space: pre-wrap; overflow-wrap: anywhere; color: #b6e5ee; }
     .pronunciation { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .5rem .75rem; margin: 1rem 0; text-align: center; }
     .pronunciation p { margin: 0; }
+    .pronunciation-button { display: inline-flex; align-items: center; justify-content: center; width: 44px; padding: 0; border: 0; border-radius: 50%; background: transparent; color: #b6e5ee; }
+    .pronunciation-button:hover { background: #305d48a6; }
+    .pronunciation-button svg { width: 24px; height: 24px; }
     .pronunciation-status { flex-basis: 100%; color: #ffc1ba; }
-    #message { min-height: 1.5em; text-align: center; font-weight: 700; color: #c3e9ee; }
-    #message.correct, #message.almost, #message.wrong { font-size: 1.25rem; }
+    #message { min-height: 1.5em; text-align: center; font-family: "Segoe UI", Inter, sans-serif; font-weight: 700; color: #c3e9ee; }
+    #message.correct, #message.almost, #message.wrong { font-size: 1rem; }
     #message.correct { color: #b1f3cc; }
     #message.almost { color: #ffe3a1; }
     #message.wrong { color: #ffc1ba; }
@@ -222,20 +275,20 @@
     @media (max-width: 600px) {
       body { padding: 1.25rem .75rem; }
       header { margin-bottom: 1.5rem; }
-      .reserved-answer { display: none; }
       .status-options { grid-template-columns: 1fr; }
       .answers { grid-template-columns: 1fr; }
       .connect-columns { gap: .45rem; }
       .connect-item { padding: .65rem .45rem; }
       .typing-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .typing-form input { grid-column: 1 / -1; }
+      #game:not(.hidden) + footer { padding-bottom: calc(10rem + env(safe-area-inset-bottom)); }
     }
   </style>
 </head>
 <body>
   <main>
     <header>
-      <h1>Bird Words</h1>
+      <h1><a href="index.html" aria-label="Bird Words — restart page">Bird Words</a></h1>
       <button class="secondary hidden" id="home-button" type="button">
         <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
           <path d="M4 6h16M4 12h16M4 18h16"></path>
@@ -260,12 +313,11 @@
         <button id="clear-status-filter" class="secondary" type="button">Clear filter</button>
       </fieldset>
       <div class="difficulty-list">
-        <button class="difficulty" type="button" data-mode="0">0 — Starter show<span>Read the Polish name and reveal its English translation.</span></button>
-        <button class="difficulty" type="button" data-mode="1">1 — Pick a translation<span>Choose the correct English name from four options.</span></button>
-        <button class="difficulty" type="button" data-mode="2">2 — Connect<span>Match each Polish name with its English translation.</span></button>
-        <button class="difficulty" type="button" data-mode="3">3 — Type it in<span>Type the translation of each bird name.</span></button>
+        <button class="difficulty" type="button" data-mode="0">Starter show<span>Read the Polish name and reveal its English translation.</span></button>
+        <button class="difficulty" type="button" data-mode="1">Pick a translation<span>Choose the correct English name from four options.</span></button>
+        <button class="difficulty" type="button" data-mode="2">Connect<span>Match each Polish name with its English translation.</span></button>
+        <button class="difficulty" type="button" data-mode="3">Type it in<span>Type the translation of each bird name.</span></button>
       </div>
-      <p class="attribution">Bird list adapted from <a href="https://pl.wikipedia.org/w/index.php?title=Ptaki_Polski&amp;oldid=80130065" target="_blank" rel="noopener noreferrer">Polish Wikipedia</a> and <a href="https://en.wikipedia.org/w/index.php?title=List_of_birds_of_Poland&amp;oldid=1377457040" target="_blank" rel="noopener noreferrer">English Wikipedia</a>, by their contributors · <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener noreferrer">CC BY-SA 4.0</a>.</p>
     </section>
     <section id="game" class="hidden" aria-labelledby="mode-title">
       <div class="toolbar">
@@ -280,14 +332,17 @@
         <div id="continuous-actions" class="hidden"></div>
       </div>
     </section>
+    <footer>
+      <p class="attribution">Bird list adapted from <a href="https://pl.wikipedia.org/w/index.php?title=Ptaki_Polski&amp;oldid=80130065" target="_blank" rel="noopener noreferrer">Polish Wikipedia</a> and <a href="https://en.wikipedia.org/w/index.php?title=List_of_birds_of_Poland&amp;oldid=1377457040" target="_blank" rel="noopener noreferrer">English Wikipedia</a>, by their contributors · <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener noreferrer">CC BY-SA 4.0</a>.</p>
+    </footer>
   </main>
   <script src="birds.js"></script>
   <script>
     const modes = [
-      "0 — Starter show",
-      "1 — Pick a translation",
-      "2 — Connect",
-      "3 — Type it in"
+      "Starter show",
+      "Pick a translation",
+      "Connect",
+      "Type it in"
     ];
     const home = document.getElementById("home");
     const homeButton = document.getElementById("home-button");
@@ -316,6 +371,8 @@
     let practicing = false;
     let completedBirds = 0;
     let pausedGame = null;
+    let birdSoundContainer = null;
+    let birdSoundAudio = null;
 
     function shuffle(items) {
       const shuffled = [...items];
@@ -347,7 +404,7 @@
       const status = document.createElement("p");
       status.className = "pronunciation-status";
       status.setAttribute("role", "status");
-      const listen = makeButton("Listen", "secondary", () => {
+      const listen = makeButton("", "pronunciation-button", () => {
         status.textContent = "";
         if (!window.speechSynthesis || typeof window.SpeechSynthesisUtterance !== "function") {
           status.textContent = "Speech is not supported in this browser.";
@@ -376,10 +433,24 @@
         }
       });
       listen.setAttribute("aria-label", `Listen to the English pronunciation of ${bird.en}`);
+      listen.setAttribute("title", "Listen to pronunciation");
+      const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      icon.setAttribute("viewBox", "0 0 24 24");
+      icon.setAttribute("fill", "none");
+      icon.setAttribute("stroke", "currentColor");
+      icon.setAttribute("stroke-width", "2");
+      icon.setAttribute("stroke-linecap", "round");
+      icon.setAttribute("stroke-linejoin", "round");
+      icon.setAttribute("aria-hidden", "true");
+      const shape = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      shape.setAttribute("d", "M11 5 6 9H3v6h3l5 4V5ZM15 9a4 4 0 0 1 0 6M18 6a8 8 0 0 1 0 12");
+      icon.append(shape);
+      listen.append(icon);
       const content = document.createElement("div");
       content.className = "pronunciation";
       content.append(guide, listen, status);
       pronunciation.replaceChildren(content);
+      return content;
     }
 
     function filteredBirds() {
@@ -405,7 +476,7 @@
         return;
       }
       mode = selectedMode;
-      continuous = false;
+      continuous = mode === 0;
       practicing = false;
       completedBirds = 0;
       pausedGame = null;
@@ -488,6 +559,7 @@
     }
 
     function updateProgress() {
+      progress.classList.toggle("hidden", mode === 0);
       progress.textContent = mode === 2
         ? `Matched ${matched.size} of ${round.length} pairs${inContinuousPlay() ? ` · Total correct: ${correctCount}` : ""}`
         : inContinuousPlay()
@@ -496,11 +568,14 @@
     }
 
     function finishRound() {
+      stopBirdSound();
       if (practicing) {
         resumeContinuous();
         return;
       }
       activity.replaceChildren();
+      clearPronunciation();
+      message.classList.remove("hidden");
       progress.textContent = `Round complete · Correct: ${correctCount} of ${round.length}`;
       message.classList.remove("correct", "almost", "wrong");
       message.textContent = mistakes.size
@@ -514,10 +589,12 @@
     }
 
     function renderQuestion() {
+      stopBirdSound();
       activity.replaceChildren();
       controls.replaceChildren();
       clearPronunciation();
       message.classList.remove("correct", "almost", "wrong");
+      message.classList.toggle("hidden", mode === 0);
       message.textContent = "";
       answered = false;
       updateContinuousActions();
@@ -526,6 +603,112 @@
       if (mode === 1) renderChoice();
       if (mode === 2) renderConnect();
       if (mode === 3) renderTyping();
+    }
+
+    function stopBirdSound() {
+      birdSoundContainer = null;
+      if (birdSoundAudio) birdSoundAudio.pause();
+      birdSoundAudio = null;
+    }
+
+    function createBirdSound(bird) {
+      const container = document.createElement("div");
+      container.className = "bird-sound";
+      birdSoundContainer = container;
+      const status = document.createElement("p");
+      status.setAttribute("role", "status");
+      if (!bird.soundFile) {
+        status.textContent = "No bird sound available for this bird.";
+        container.append(status);
+        return container;
+      }
+
+      const load = makeButton("Load bird sound", "secondary", async () => {
+        load.disabled = true;
+        status.textContent = "Loading bird sound…";
+        try {
+          const url = new URL("https://commons.wikimedia.org/w/api.php");
+          url.search = new URLSearchParams({
+            action: "query", prop: "videoinfo", titles: `File:${bird.soundFile}`,
+            viprop: "url|derivatives|extmetadata", format: "json", origin: "*"
+          });
+          const response = await fetch(url);
+          if (!response.ok) throw new Error(`Wikimedia Commons returned HTTP ${response.status}.`);
+          const data = await response.json();
+          const file = Object.values(data.query.pages)[0];
+          const info = file.videoinfo && file.videoinfo[0];
+          const metadata = info && info.extmetadata;
+          const text = field => {
+            const value = metadata && metadata[field] && metadata[field].value;
+            return value ? new DOMParser().parseFromString(value, "text/html").body.textContent.trim() : "";
+          };
+          const artist = text("Artist");
+          const attribution = text("Attribution");
+          const license = text("LicenseShortName");
+          const publicDomain = text("Copyrighted") === "False" && license === "Public domain";
+          const licenseUrl = text("LicenseUrl");
+          if (!info || !info.url || !info.descriptionurl || !license || (!publicDomain && (!artist || !licenseUrl))) {
+            throw new Error("Recording credit or license information is missing.");
+          }
+          const sourceUrl = new URL(info.descriptionurl);
+          const originalUrl = new URL(info.url);
+          const licenseLinkUrl = licenseUrl ? new URL(licenseUrl) : null;
+          const validAudioUrl = audioUrl => audioUrl.protocol === "https:" && audioUrl.hostname === "upload.wikimedia.org";
+          if (!validAudioUrl(originalUrl) || sourceUrl.protocol !== "https:" || sourceUrl.hostname !== "commons.wikimedia.org"
+            || (licenseLinkUrl && (licenseLinkUrl.protocol !== "https:" || licenseLinkUrl.hostname !== "creativecommons.org"
+              || !/^\/(?:licenses\/(?:by|by-sa)|publicdomain\/(?:zero|mark))\/[0-9.]+\/?$/.test(licenseLinkUrl.pathname)))) {
+            throw new Error("Recording or credit links are not valid.");
+          }
+          if (birdSoundContainer !== container) return;
+
+          const audio = document.createElement("audio");
+          audio.controls = true;
+          audio.preload = "none";
+          audio.setAttribute("aria-label", `Bird sound: ${bird.pl}`);
+          const mp3 = (info.derivatives || []).find(item => item.type === "audio/mpeg");
+          if (mp3) {
+            const mp3Url = new URL(mp3.src);
+            if (validAudioUrl(mp3Url)) {
+              const source = document.createElement("source");
+              source.src = mp3Url.href;
+              source.type = "audio/mpeg";
+              audio.append(source);
+            }
+          }
+          const original = document.createElement("source");
+          original.src = originalUrl.href;
+          original.type = "audio/ogg";
+          audio.append(original);
+          const playbackFailed = () => { status.textContent = "Bird sound unavailable: playback failed."; };
+          original.addEventListener("error", playbackFailed);
+          audio.addEventListener("error", playbackFailed);
+          const credit = document.createElement("p");
+          credit.className = "bird-sound-credit";
+          const sourceLink = document.createElement("a");
+          sourceLink.href = sourceUrl.href;
+          sourceLink.target = "_blank";
+          sourceLink.rel = "noopener noreferrer";
+          sourceLink.textContent = file.title.replace(/^File:/, "");
+          const licenseLink = document.createElement("a");
+          licenseLink.href = licenseLinkUrl ? licenseLinkUrl.href : sourceUrl.href;
+          licenseLink.target = "_blank";
+          licenseLink.rel = "noopener noreferrer";
+          licenseLink.textContent = license;
+          const creditText = attribution && attribution !== artist ? `${artist} (${attribution})` : artist;
+          credit.append(sourceLink, document.createTextNode(`${creditText ? ` by ${creditText}` : ""} · `), licenseLink);
+          if (mp3 && audio.children.length > 1) credit.append(document.createTextNode(" · audio may be transcoded"));
+          birdSoundAudio = audio;
+          status.textContent = "Bird sound ready.";
+          container.replaceChildren(status, audio, credit);
+        } catch (error) {
+          if (birdSoundContainer !== container) return;
+          status.textContent = `Bird sound unavailable: ${error.message}`;
+          load.disabled = false;
+        }
+      });
+      load.setAttribute("aria-label", `Load bird sound for ${bird.pl}`);
+      container.append(load, status);
+      return container;
     }
 
     async function showBirdPhoto(bird, container) {
@@ -624,35 +807,27 @@
       const answer = document.createElement("p");
       answer.className = "prompt reserved-answer";
       answer.lang = "en";
-      answer.textContent = "\u00a0";
-      activity.append(prompt, answer, photo);
-      function setStarterControls(button, showFinish) {
+      answer.textContent = bird.en;
+      answer.setAttribute("aria-hidden", "true");
+      activity.append(prompt, answer, photo, createBirdSound(bird));
+      const pronunciationGuide = showPronunciation(bird);
+      pronunciationGuide.classList.add("reserved-answer");
+      pronunciationGuide.setAttribute("aria-hidden", "true");
+      function setStarterControls(button) {
         button.classList.add("starter-nav");
-        if (inContinuousPlay()) {
-          controls.replaceChildren(button);
-          return;
-        }
-        const finishButton = makeButton("Finish round", "primary", nextQuestion);
-        if (!showFinish) {
-          finishButton.classList.add("reserved-button");
-          finishButton.disabled = true;
-        }
-        controls.replaceChildren(button, finishButton);
+        controls.replaceChildren(button);
       }
       setStarterControls(makeButton("Show English", "primary", () => {
         if (answered) return;
         answered = true;
-        answer.textContent = bird.en;
         answer.classList.remove("reserved-answer");
-        showPronunciation(bird);
+        answer.removeAttribute("aria-hidden");
+        pronunciationGuide.classList.remove("reserved-answer");
+        pronunciationGuide.removeAttribute("aria-hidden");
         correctCount++;
-        message.textContent = "Translation revealed.";
         const nextButton = makeButton("Next bird", "primary", nextQuestion);
-        if (!inContinuousPlay() && index === round.length - 1) {
-          nextButton.disabled = true;
-        }
-        setStarterControls(nextButton, index === round.length - 1);
-      }), false);
+        setStarterControls(nextButton);
+      }));
     }
 
     function choiceOptions(bird) {
@@ -933,6 +1108,7 @@
     }
 
     function showHome() {
+      stopBirdSound();
       game.classList.add("hidden");
       home.classList.remove("hidden");
       homeButton.classList.add("hidden");

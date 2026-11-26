@@ -79,6 +79,47 @@ const statusCategories = new Map([
   ["zalatywał wyjątkowo, sporadycznie lęgowy (status dawny)", ["historical"]],
 ]);
 
+// Recordings embedded in the corresponding rows of the Polish Wikipedia list.
+const birdSounds = new Map([
+  ["Branta bernicla", "Brent_Goose_(Branta_bernicla)_(W_BRANTA_BERNICLA_R1_C11).ogg"],
+  ["Branta canadensis", "Branta_canadensis.ogg"],
+  ["Phasianus colchicus", "Phasianus_colchicus.ogg"],
+  ["Crex crex", "Corn_crake_voice.ogg"],
+  ["Himantopus himantopus", "Vioce_of_himantopus_himantopus01.ogg"],
+  ["Gallinago gallinago", "Gallinago_gallinago.ogg"],
+  ["Thalasseus sandvicensis", "Sandwich_Tern_(Thalasseus_sandvicensis)_(W1CDR0001504_BD9).ogg"],
+  ["Sterna hirundo", "Sterna-hirundo-002.ogg"],
+  ["Gavia immer", "Loons.ogg"],
+  ["Ciconia ciconia", "Ciconia_ciconia_bill-clattering.ogg"],
+  ["Strix aluco", "Tawny_Owl_(Strix_aluco)_(W1CDR0001519_BD8).ogg"],
+  ["Pandion haliaetus", "Pandion_haliaetus.ogg"],
+  ["Buteo buteo", "Buteo_buteo_warning_the_fledglings_7643.ogg"],
+  ["Dendrocopos major", "Woodpeckerdrum.ogg"],
+  ["Garrulus glandarius", "Garrulus_glandarius_iphigenia.ogg"],
+  ["Pica pica", "Pica_pica.ogg"],
+  ["Parus major", "Parus_major.ogg"],
+  ["Lophophanes cristatus", "Lophophanes_cristatus_mitratus_crested_tit.ogg"],
+  ["Alauda arvensis", "XN_Alauda_arvensis.ogg"],
+  ["Acrocephalus arundinaceus", "Acrocephalus_arundinaceus_1.ogg"],
+  ["Locustella luscinioides", "Locustella_luscinioides.ogg"],
+  ["Hirundo rustica", "BarnSwallows.ogg"],
+  ["Phylloscopus sibilatrix", "20080510_1117_Phylloscopus_sibilatrix.ogg"],
+  ["Phylloscopus trochilus", "Phylloscopus_rochilus.ogg"],
+  ["Phylloscopus collybita", "Phylloscopus_collybita_7029.ogg"],
+  ["Sitta europaea", "Sitta_europaea.ogg"],
+  ["Troglodytes troglodytes", "Troglodytes_troglodytes_song.ogg"],
+  ["Sturnus vulgaris", "Sturnus_vulgaris.ogg"],
+  ["Turdus philomelos", "Turdus_philomelos_816.ogg"],
+  ["Turdus merula", "Turdus_merula_(06_02_16).ogg"],
+  ["Erithacus rubecula", "Zwitschunb-clean.ogg"],
+  ["Luscinia megarhynchos", "XN_Luscinia_megarhynchos_012.ogg"],
+  ["Luscinia luscinia", "Common_Nightingale's_song_1.ogg"],
+  ["Ficedula hypoleuca", "Pied_Flycatcher_(Ficedula_hypoleuca)_(W1CDR0001423_BD1).ogg"],
+  ["Prunella modularis", "Prunella_modularis_(06_03_06).ogg"],
+  ["Fringilla coelebs", "Fringilla_coelebs.ogg"],
+  ["Emberiza citrinella", "XN_Emberiza_citrinella.ogg"],
+]);
+
 const birds = [
   ["White-headed duck", "Sterniczka", "Oxyura leucocephala", "Anatidae", "wˈa‍ɪthˈɛdɪd dˈʌk", "zalatuje sporadycznie"],
   ["Mute swan", "Łabędź niemy", "Cygnus olor", "Anatidae", "mjˈuːt swˈɒn", "nielicznie lęgowy"],
@@ -558,5 +599,5 @@ const birds = [
 ].map(([en, pl, scientificName, family, pronunciation, status]) => {
   const categories = statusCategories.get(status);
   if (!categories) throw new Error(`Missing category mapping for status: ${status}`);
-  return { en, pl, scientificName, family, pronunciation, status, categories };
+  return { en, pl, scientificName, family, pronunciation, status, categories, soundFile: birdSounds.get(scientificName) };
 });

@@ -28,9 +28,9 @@ function setup(speechSynthesis) {
   const game = vm.createContext({
     window,
     pronunciation,
-    document: { createElement: element },
+    document: { createElement: element, createElementNS: element },
     makeButton(text, className, click) {
-      return { textContent: text, click, setAttribute(name, value) { this[name] = value; } };
+      return { ...element(), textContent: text, className, click };
     }
   });
   vm.runInContext(html.slice(start, end), game);
@@ -50,6 +50,9 @@ test("shows the approximate guide and speaks only on demand using a British voic
   game.showPronunciation({ en: "Mute swan", pronunciation: "mjˈuːt swˈɒn" });
   const [guide, button, status] = pronunciation.children[0].children;
   assert.match(guide.textContent, /approximate IPA: \/mjˈuːt swˈɒn\//);
+  assert.equal(button["aria-label"], "Listen to the English pronunciation of Mute swan");
+  assert.equal(button.children.length, 1);
+  assert.equal(button.children[0]["aria-hidden"], "true");
   assert.equal(spoken.length, 0);
   button.click();
   assert.equal(spoken.length, 1);

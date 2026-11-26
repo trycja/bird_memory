@@ -69,13 +69,27 @@ function setupRounds() {
      function filteredBirds() { return birds; }
      let round = [], mode = 0, index = 0, correctCount = 0, answered = false;
      let selectedSource = null, matched = new Set(), mistakes = new Set();
-     let continuous = false, practicing = false, completedBirds = 0, pausedGame = null;\n`
+     let continuous = false, practicing = false, completedBirds = 0, pausedGame = null;
+     let birdSoundContainer = null, birdSoundAudio = null;\n`
       + extract("startMode", "async function showBirdPhoto("),
     game
   );
   vm.runInContext(extract("nextQuestion", "function showHome("), game);
   return game;
 }
+
+test("hides progress only in Starter show, including continuous play", () => {
+  const game = setupRounds();
+  game.startMode(0);
+  assert.equal(game.progress.classList.contains("hidden"), true);
+  assert.equal(game.message.classList.contains("hidden"), true);
+  vm.runInContext("answered = true; nextQuestion();", game);
+  assert.equal(game.progress.classList.contains("hidden"), true);
+  game.startMode(1);
+  assert.equal(game.progress.classList.contains("hidden"), false);
+  assert.equal(game.message.classList.contains("hidden"), false);
+  assert.equal(game.progress.textContent, "Bird 1 of 5 · Correct: 0");
+});
 
 test("retries only missed birds and clears mistakes for each new round", () => {
   const game = setupRounds();
@@ -98,6 +112,15 @@ test("retries only missed birds and clears mistakes for each new round", () => {
   assert.equal(game.controls.children[0].textContent, "Keep playing");
 });
 
+test("clears pronunciation when showing the round completion menu", () => {
+  const game = setupRounds();
+  game.startMode(1);
+  game.pronunciation.append({ textContent: "last bird" });
+  game.finishRound();
+  assert.equal(game.pronunciation.children.length, 0);
+  assert.equal(game.controls.children[0].textContent, "Keep playing");
+});
+
 test("continuous play crosses five-bird batches and start over resets the session", () => {
   const game = setupRounds();
   game.startMode(1);
@@ -117,14 +140,34 @@ test("continuous play crosses five-bird batches and start over resets the sessio
   assert.equal(game.continuousActions.children[0].disabled, true);
 });
 
-test("starter continuous play does not offer mistake practice or start over", () => {
+test("Starter continues across batches without a completion menu", () => {
   const game = setupRounds();
   game.startMode(0);
-  game.finishRound();
-  game.controls.children.find(button => button.textContent === "Keep playing").click();
-  assert.equal(game.progress.textContent, "Bird 6 · Correct: 0");
+  assert.equal(vm.runInContext("inContinuousPlay()", game), true);
+  for (let i = 0; i < 13; i++) {
+    vm.runInContext("answered = true; nextQuestion();", game);
+    assert.equal(game.message.classList.contains("hidden"), true);
+    assert.equal(game.controls.children.length, 0);
+  }
+  assert.equal(game.progress.textContent, "Bird 14 · Correct: 0");
   assert.equal(game.continuousActions.classList.contains("hidden"), true);
   assert.equal(game.continuousActions.children.length, 0);
+  game.startMode(1);
+  assert.equal(vm.runInContext("inContinuousPlay()", game), false);
+  game.finishRound();
+  assert.equal(game.controls.children[0].textContent, "Keep playing");
+});
+
+test("Starter keeps playing when the filter contains one bird", () => {
+  const game = setupRounds();
+  vm.runInContext("filteredBirds = () => birds.slice(0, 1);", game);
+  game.startMode(0);
+  for (let i = 0; i < 3; i++) {
+    vm.runInContext("answered = true; nextQuestion();", game);
+    assert.equal(vm.runInContext("round.length", game), 1);
+    assert.equal(vm.runInContext("round[0].en", game), "A");
+    assert.equal(game.message.classList.contains("hidden"), true);
+  }
 });
 
 test("short filtered rounds remain within the selected birds in continuous play", () => {
@@ -201,12 +244,13 @@ test("records an incorrect multiple-choice answer", () => {
 });
 
 test("records the selected Polish bird once when a Connect match is wrong", () => {
+  const pronounced = [];
   const game = vm.createContext({
     activity: element(),
     message: element(),
     updateProgress() {},
     finishRound() {},
-    showPronunciation() {},
+    showPronunciation(bird) { pronounced.push(bird.en); },
     updateContinuousActions() {},
     inContinuousPlay: () => false
   });
@@ -219,8 +263,12 @@ test("records the selected Polish bird once when a Connect match is wrong", () =
   vm.runInContext("connectPair(round[0], round[1]); connectPair(round[0], round[1]);", game);
   assert.equal(vm.runInContext("mistakes.size", game), 1);
   assert.equal(vm.runInContext("mistakes.has(round[0])", game), true);
+  assert.deepEqual(pronounced, []);
   vm.runInContext("connectPair(round[0], round[0]);", game);
   assert.equal(vm.runInContext("mistakes.size", game), 1);
+  assert.deepEqual(pronounced, ["A"]);
+  vm.runInContext("connectPair(round[0], round[0]); connectPair(round[1], round[1]);", game);
+  assert.deepEqual(pronounced, ["A", "B"]);
 });
 
 test("completing a continuous Connect group offers the next group", () => {
