@@ -40,6 +40,7 @@ function makeButton(text, className, handler) {
 }
 
 function setupRounds() {
+  const pronunciation = element();
   const game = vm.createContext({
     modes: ["starter", "choice"],
     modeTitle: element(),
@@ -47,12 +48,14 @@ function setupRounds() {
     homeButton: element(),
     game: element(),
     activity: element(),
+    pronunciation,
     controls: element(),
     continuousActions: element(),
     progress: element(),
     message: element(),
     shuffle: items => [...items],
     makeButton,
+    clearPronunciation() { pronunciation.replaceChildren(); },
     showHome() {},
     renderChoice() {}
   });
@@ -116,8 +119,10 @@ test("practice restores the interrupted continuous question and retains repeated
   game.controls.children.find(button => button.textContent === "Keep playing").click();
   const question = { textContent: "unfinished question" };
   const next = { textContent: "Next bird" };
+  const pronunciation = { textContent: "previous pronunciation" };
   game.activity.append(question);
   game.controls.append(next);
+  game.pronunciation.append(pronunciation);
   vm.runInContext("answered = true; correctCount = 3;", game);
   game.continuousActions.children[0].click();
   assert.equal(vm.runInContext("practicing", game), true);
@@ -126,6 +131,7 @@ test("practice restores the interrupted continuous question and retains repeated
   game.finishRound();
   assert.equal(game.activity.children[0], question);
   assert.equal(game.controls.children[0], next);
+  assert.equal(game.pronunciation.children[0], pronunciation);
   assert.equal(vm.runInContext("answered && correctCount === 3", game), true);
   assert.equal(vm.runInContext("mistakes.size", game), 1);
   assert.equal(game.continuousActions.children[0].disabled, false);
@@ -135,6 +141,7 @@ test("practice restores the interrupted continuous question and retains repeated
 });
 
 test("records an incorrect multiple-choice answer", () => {
+  const pronounced = [];
   const game = vm.createContext({
     activity: element(),
     message: element(),
@@ -142,6 +149,7 @@ test("records an incorrect multiple-choice answer", () => {
     makeButton,
     shuffle: items => [...items],
     showNextButton() {},
+    showPronunciation(bird) { pronounced.push(bird.en); },
     updateContinuousActions() {}
   });
   vm.runInContext(
@@ -152,7 +160,9 @@ test("records an incorrect multiple-choice answer", () => {
     game
   );
   game.renderChoice();
+  assert.equal(pronounced.length, 0);
   game.activity.children[1].children[1].click();
+  assert.deepEqual(pronounced, ["A"]);
   assert.equal(vm.runInContext("mistakes.has(round[0])", game), true);
   assert.equal(game.message.classList.contains("correct"), false);
   vm.runInContext("answered = false;", game);
@@ -167,6 +177,7 @@ test("records the selected Polish bird once when a Connect match is wrong", () =
     message: element(),
     updateProgress() {},
     finishRound() {},
+    showPronunciation() {},
     updateContinuousActions() {},
     inContinuousPlay: () => false
   });
@@ -190,6 +201,7 @@ test("completing a continuous Connect group offers the next group", () => {
     controls: element(),
     message: element(),
     makeButton,
+    showPronunciation() {},
     updateProgress() {},
     updateContinuousActions() {},
     inContinuousPlay: () => true,

@@ -30,7 +30,8 @@ test("classifies unrelated, multiple-error and blank answers as wrong", () => {
   assert.equal(typingResult("   ", "Wróbel"), "wrong");
 });
 
-function setupTypingGame(coarsePointer = false, bird = { en: "Great Tit", pl: "Bogatka" }) {
+function setupTypingGame(coarsePointer = false, bird = { en: "Great Tit", pl: "Bogatka" }, random = 0.5) {
+  const pronounced = [];
   function element(tagName) {
     return {
       tagName,
@@ -45,7 +46,7 @@ function setupTypingGame(coarsePointer = false, bird = { en: "Great Tit", pl: "B
   }
   const activity = element("div");
   const math = Object.create(Math);
-  math.random = () => 0.5;
+  math.random = () => random;
   const game = vm.createContext({
     Math: math,
     activity,
@@ -62,6 +63,7 @@ function setupTypingGame(coarsePointer = false, bird = { en: "Great Tit", pl: "B
       return button;
     },
     showNextButton() {},
+    showPronunciation(bird) { pronounced.push(bird.en); },
     updateContinuousActions() {}
   });
   const renderEnd = html.indexOf("    function showNextButton()", end);
@@ -72,8 +74,21 @@ function setupTypingGame(coarsePointer = false, bird = { en: "Great Tit", pl: "B
     game
   );
   game.renderTyping();
-  return { game, activity };
+  return { game, activity, pronounced };
 }
+
+test("does not reveal the English answer's pronunciation before submission", () => {
+  const { activity, pronounced } = setupTypingGame();
+  assert.equal(pronounced.length, 0);
+  activity.children[1].children[0].value = "wrong";
+  activity.children[1].listeners.submit({ preventDefault() {} });
+  assert.deepEqual(pronounced, ["Great Tit"]);
+});
+
+test("shows pronunciation immediately when the English name is the prompt", () => {
+  const { pronounced } = setupTypingGame(false, { en: "Great Tit", pl: "Bogatka" }, 0.1);
+  assert.deepEqual(pronounced, ["Great Tit"]);
+});
 
 test("reveals one letter at a time without changing the answer or score", () => {
   const { game, activity } = setupTypingGame();

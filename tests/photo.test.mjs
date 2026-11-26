@@ -95,6 +95,7 @@ test("starts the photo lookup before the English translation is revealed", () =>
     message: element("p"),
     document: { createElement: element },
     showBirdPhoto: (item, container) => requests.push({ item, container }),
+    showPronunciation() {},
     inContinuousPlay: () => false,
     nextQuestion() {},
     makeButton(text, className, handler) {
