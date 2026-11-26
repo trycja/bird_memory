@@ -8,8 +8,8 @@ const start = html.indexOf("    function choiceOptions(");
 const end = html.indexOf("    function renderChoice(", start);
 assert.ok(start !== -1 && end !== -1);
 
-function createGame(birds) {
-  const game = vm.createContext({ birds, shuffle: items => [...items] });
+function createGame(birds, activeBirds = birds) {
+  const game = vm.createContext({ birds, activeBirds, shuffle: items => [...items] });
   vm.runInContext(html.slice(start, end), game);
   return game;
 }
@@ -24,6 +24,18 @@ test("prefers birds from the correct family over unrelated birds", () => {
   ];
   const options = createGame(birds).choiceOptions(birds[0]);
   assert.equal(Array.from(options, bird => bird.en).join(","), "Blackbird,Fieldfare,Redwing,Thrush");
+});
+
+test("uses outside birds only when the selected pool cannot fill the choices", () => {
+  const birds = [
+    { en: "A", pl: "A", family: "one" },
+    { en: "B", pl: "B", family: "two" },
+    { en: "C", pl: "C", family: "one" },
+    { en: "D", pl: "D", family: "three" },
+    { en: "E", pl: "E", family: "four" }
+  ];
+  const options = createGame(birds, [birds[0], birds[1]]).choiceOptions(birds[0]);
+  assert.equal(Array.from(options, bird => bird.en).join(","), "A,B,C,D");
 });
 
 test("fills missing family choices from other birds without duplicate translations", () => {

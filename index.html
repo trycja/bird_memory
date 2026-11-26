@@ -77,6 +77,12 @@
     }
     .attribution { color: #cbd0da; text-align: center; font-size: .85rem; }
     a { color: #a9dfe9; }
+    .status-filter { margin: 1rem 0 1.5rem; padding: 1rem; border: 1px solid #c9e8e640; border-radius: .85rem; }
+    .status-filter legend { padding: 0 .4rem; font-weight: 700; }
+    .status-filter p { margin: .35rem 0 .75rem; color: #cbd0da; }
+    .status-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .25rem .75rem; }
+    .status-option { display: flex; align-items: center; gap: .6rem; min-height: 44px; cursor: pointer; }
+    .status-option input { width: 1.25rem; height: 1.25rem; min-height: 0; flex: none; accent-color: #62cba6; }
     .difficulty-list { display: grid; gap: .85rem; margin-top: 1rem; }
     .difficulty, .primary, .secondary, .answer, .connect-item {
       border: 1px solid #c9e8e640;
@@ -110,7 +116,7 @@
       background: #44745bef;
       border-color: #ffffffcc;
     }
-    .primary:disabled { opacity: .6; cursor: not-allowed; }
+    .primary:disabled, .difficulty:disabled { opacity: .6; cursor: not-allowed; }
     .difficulty span { display: block; margin-top: .2rem; font-weight: 500; line-height: 1.4; }
     #home-button:not(.hidden) {
       display: inline-flex;
@@ -217,6 +223,7 @@
       body { padding: 1.25rem .75rem; }
       header { margin-bottom: 1.5rem; }
       .reserved-answer { display: none; }
+      .status-options { grid-template-columns: 1fr; }
       .answers { grid-template-columns: 1fr; }
       .connect-columns { gap: .45rem; }
       .connect-item { padding: .65rem .45rem; }
@@ -238,6 +245,20 @@
     </header>
     <section id="home" aria-labelledby="choose-title">
       <h2 id="choose-title">Choose a difficulty</h2>
+      <fieldset class="status-filter">
+        <legend>Filter birds by status in Poland</legend>
+        <p>Select any categories to include. Leave all unchecked to use every bird.</p>
+        <div class="status-options">
+          <label class="status-option"><input type="checkbox" name="status" value="breeding"> Breeding</label>
+          <label class="status-option"><input type="checkbox" name="status" value="migrating"> Migrating or wintering</label>
+          <label class="status-option"><input type="checkbox" name="status" value="rare"> Rare visitor</label>
+          <label class="status-option"><input type="checkbox" name="status" value="exceptional"> Exceptional visitor</label>
+          <label class="status-option"><input type="checkbox" name="status" value="historical"> Historical</label>
+          <label class="status-option"><input type="checkbox" name="status" value="captive"> Captive origin</label>
+        </div>
+        <p id="status-filter-message" role="status" aria-live="polite"></p>
+        <button id="clear-status-filter" class="secondary" type="button">Clear filter</button>
+      </fieldset>
       <div class="difficulty-list">
         <button class="difficulty" type="button" data-mode="0">0 — Starter show<span>Read the Polish name and reveal its English translation.</span></button>
         <button class="difficulty" type="button" data-mode="1">1 — Pick a translation<span>Choose the correct English name from four options.</span></button>
@@ -278,6 +299,11 @@
     const message = document.getElementById("message");
     const controls = document.getElementById("controls");
     const continuousActions = document.getElementById("continuous-actions");
+    const statusInputs = [...document.querySelectorAll('input[name="status"]')];
+    const statusFilterMessage = document.getElementById("status-filter-message");
+    const clearStatusFilter = document.getElementById("clear-status-filter");
+    const difficultyButtons = [...document.querySelectorAll(".difficulty")];
+    let activeBirds = birds;
     let round = [];
     let mode = 0;
     let index = 0;
@@ -356,7 +382,28 @@
       pronunciation.replaceChildren(content);
     }
 
+    function filteredBirds() {
+      const selected = new Set(statusInputs.filter(input => input.checked).map(input => input.value));
+      return selected.size === 0
+        ? birds
+        : birds.filter(bird => bird.categories.some(category => selected.has(category)));
+    }
+
+    function updateStatusFilter() {
+      const count = filteredBirds().length;
+      statusFilterMessage.textContent = count
+        ? `${count} ${count === 1 ? "bird matches" : "birds match"} this selection.${count < 5 ? " Rounds will be shorter than five birds." : ""}`
+        : "No birds match this selection. Choose another status.";
+      clearStatusFilter.disabled = !statusInputs.some(input => input.checked);
+      difficultyButtons.forEach(button => { button.disabled = count === 0; });
+    }
+
     function startMode(selectedMode) {
+      activeBirds = filteredBirds();
+      if (!activeBirds.length) {
+        updateStatusFilter();
+        return;
+      }
       mode = selectedMode;
       continuous = false;
       practicing = false;
@@ -366,7 +413,7 @@
       home.classList.add("hidden");
       game.classList.remove("hidden");
       homeButton.classList.remove("hidden");
-      startRound(shuffle(birds).slice(0, 5));
+      startRound(shuffle(activeBirds).slice(0, 5));
     }
 
     function inContinuousPlay() {
@@ -375,8 +422,9 @@
 
     function updateContinuousActions() {
       continuousActions.replaceChildren();
-      continuousActions.classList.toggle("hidden", !inContinuousPlay());
-      if (!inContinuousPlay()) return;
+      const showActions = inContinuousPlay() && mode !== 0;
+      continuousActions.classList.toggle("hidden", !showActions);
+      if (!showActions) return;
       const fixButton = makeButton("Fix mistakes", "secondary", startPractice);
       fixButton.disabled = mistakes.size === 0;
       continuousActions.append(fixButton, makeButton("Start over", "secondary", restartContinuous));
@@ -385,7 +433,7 @@
     function keepPlaying() {
       continuous = true;
       completedBirds = round.length;
-      round = shuffle(birds).slice(0, 5);
+      round = shuffle(activeBirds).slice(0, 5);
       index = 0;
       matched = new Set();
       selectedSource = null;
@@ -394,7 +442,7 @@
 
     function restartContinuous() {
       completedBirds = 0;
-      startRound(shuffle(birds).slice(0, 5));
+      startRound(shuffle(activeBirds).slice(0, 5));
     }
 
     function startPractice() {
@@ -557,22 +605,27 @@
       }
     }
 
+    function createBirdPhoto(bird) {
+      const photo = document.createElement("div");
+      photo.className = "photo-status";
+      photo.setAttribute("role", "status");
+      photo.textContent = "Loading bird photo…";
+      showBirdPhoto(bird, photo);
+      return photo;
+    }
+
     function renderShow() {
       const bird = round[index];
       const prompt = document.createElement("p");
       prompt.className = "prompt";
       prompt.lang = "pl";
       prompt.textContent = bird.pl;
-      const photo = document.createElement("div");
-      photo.className = "photo-status";
-      photo.setAttribute("role", "status");
-      photo.textContent = "Loading bird photo…";
+      const photo = createBirdPhoto(bird);
       const answer = document.createElement("p");
       answer.className = "prompt reserved-answer";
       answer.lang = "en";
       answer.textContent = "\u00a0";
       activity.append(prompt, answer, photo);
-      showBirdPhoto(bird, photo);
       function setStarterControls(button, showFinish) {
         button.classList.add("starter-nav");
         if (inContinuousPlay()) {
@@ -604,6 +657,8 @@
 
     function choiceOptions(bird) {
       const candidates = [
+        ...shuffle(activeBirds.filter(item => item.family === bird.family)),
+        ...shuffle(activeBirds),
         ...shuffle(birds.filter(item => item.family === bird.family)),
         ...shuffle(birds)
       ];
@@ -624,7 +679,7 @@
       prompt.className = "prompt";
       prompt.lang = "pl";
       prompt.textContent = bird.pl;
-      activity.append(prompt);
+      activity.append(prompt, createBirdPhoto(bird));
       const options = choiceOptions(bird);
       const answers = document.createElement("div");
       answers.className = "answers";
@@ -736,7 +791,7 @@
 
     function nextConnectGroup() {
       completedBirds += round.length;
-      round = shuffle(birds).slice(0, 5);
+      round = shuffle(activeBirds).slice(0, 5);
       matched = new Set();
       selectedSource = null;
       renderQuestion();
@@ -861,7 +916,7 @@
       if (inContinuousPlay()) {
         completedBirds++;
         if (index === round.length - 1) {
-          round = shuffle(birds).slice(0, 5);
+          round = shuffle(activeBirds).slice(0, 5);
           index = 0;
         } else {
           index++;
@@ -885,7 +940,13 @@
       clearPronunciation();
     }
 
-    document.querySelectorAll(".difficulty").forEach(button => {
+    statusInputs.forEach(input => input.addEventListener("change", updateStatusFilter));
+    clearStatusFilter.addEventListener("click", () => {
+      statusInputs.forEach(input => { input.checked = false; });
+      updateStatusFilter();
+    });
+    updateStatusFilter();
+    difficultyButtons.forEach(button => {
       button.addEventListener("click", () => startMode(Number(button.dataset.mode)));
     });
     homeButton.addEventListener("click", showHome);

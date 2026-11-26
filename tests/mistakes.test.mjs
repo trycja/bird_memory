@@ -19,7 +19,10 @@ function element() {
     classList: {
       add(name) { classes.add(name); },
       remove(name) { classes.delete(name); },
-      toggle() {},
+      toggle(name, force) {
+        if (force) classes.add(name);
+        else classes.delete(name);
+      },
       contains(name) { return classes.has(name); }
     },
     get childNodes() { return this.children; },
@@ -57,10 +60,13 @@ function setupRounds() {
     makeButton,
     clearPronunciation() { pronunciation.replaceChildren(); },
     showHome() {},
-    renderChoice() {}
+    renderChoice() {},
+    renderShow() {}
   });
   vm.runInContext(
     `let birds = [{ en: "A" }, { en: "B" }, { en: "C" }, { en: "D" }, { en: "E" }];
+     let activeBirds = birds;
+     function filteredBirds() { return birds; }
      let round = [], mode = 0, index = 0, correctCount = 0, answered = false;
      let selectedSource = null, matched = new Set(), mistakes = new Set();
      let continuous = false, practicing = false, completedBirds = 0, pausedGame = null;\n`
@@ -111,6 +117,28 @@ test("continuous play crosses five-bird batches and start over resets the sessio
   assert.equal(game.continuousActions.children[0].disabled, true);
 });
 
+test("starter continuous play does not offer mistake practice or start over", () => {
+  const game = setupRounds();
+  game.startMode(0);
+  game.finishRound();
+  game.controls.children.find(button => button.textContent === "Keep playing").click();
+  assert.equal(game.progress.textContent, "Bird 6 · Correct: 0");
+  assert.equal(game.continuousActions.classList.contains("hidden"), true);
+  assert.equal(game.continuousActions.children.length, 0);
+});
+
+test("short filtered rounds remain within the selected birds in continuous play", () => {
+  const game = setupRounds();
+  vm.runInContext("filteredBirds = () => birds.slice(0, 1);", game);
+  game.startMode(1);
+  assert.equal(vm.runInContext("round.length", game), 1);
+  game.finishRound();
+  game.controls.children.find(button => button.textContent === "Keep playing").click();
+  assert.equal(vm.runInContext("round.map(bird => bird.en).join(',')", game), "A");
+  vm.runInContext("answered = true; nextQuestion();", game);
+  assert.equal(vm.runInContext("round.map(bird => bird.en).join(',')", game), "A");
+});
+
 test("practice restores the interrupted continuous question and retains repeated mistakes", () => {
   const game = setupRounds();
   game.startMode(1);
@@ -148,6 +176,7 @@ test("records an incorrect multiple-choice answer", () => {
     document: { createElement: element },
     makeButton,
     shuffle: items => [...items],
+    createBirdPhoto: () => element(),
     showNextButton() {},
     showPronunciation(bird) { pronounced.push(bird.en); },
     updateContinuousActions() {}
@@ -161,13 +190,13 @@ test("records an incorrect multiple-choice answer", () => {
   );
   game.renderChoice();
   assert.equal(pronounced.length, 0);
-  game.activity.children[1].children[1].click();
+  game.activity.children[2].children[1].click();
   assert.deepEqual(pronounced, ["A"]);
   assert.equal(vm.runInContext("mistakes.has(round[0])", game), true);
   assert.equal(game.message.classList.contains("correct"), false);
   vm.runInContext("answered = false;", game);
   game.renderChoice();
-  game.activity.children[3].children[0].click();
+  game.activity.children[5].children[0].click();
   assert.equal(game.message.classList.contains("correct"), true);
 });
 

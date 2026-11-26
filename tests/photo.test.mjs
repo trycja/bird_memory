@@ -8,6 +8,9 @@ const start = html.indexOf("    async function showBirdPhoto(");
 const end = html.indexOf("    function renderShow()", start);
 assert.ok(start !== -1 && end !== -1, "Photo function must exist in the game page");
 const source = html.slice(start, end);
+const helperStart = html.indexOf("    function createBirdPhoto(", start);
+assert.ok(helperStart !== -1);
+const photoHelper = html.slice(helperStart, end);
 
 function element(tagName) {
   return {
@@ -107,7 +110,7 @@ test("starts the photo lookup before the English translation is revealed", () =>
   });
   vm.runInContext(
     "let round = [bird], index = 0, answered = false, correctCount = 0;\n"
-      + html.slice(renderStart, renderEnd),
+      + photoHelper + html.slice(renderStart, renderEnd),
     context
   );
   context.renderShow();
@@ -122,6 +125,31 @@ test("starts the photo lookup before the English translation is revealed", () =>
   assert.equal(activity.children[1].textContent, "House Sparrow");
   assert.equal(activity.children[2], requests[0].container);
   assert.equal(requests.length, 1);
+});
+
+test("shows the current bird's photo between the Polish name and translation choices", () => {
+  const renderStart = html.indexOf("    function renderChoice()");
+  const renderEnd = html.indexOf("    function renderConnect()", renderStart);
+  assert.ok(renderStart !== -1 && renderEnd !== -1);
+  const bird = { en: "House Sparrow", pl: "Wróbel", scientificName: "Passer domesticus" };
+  const activity = element("div");
+  const requests = [];
+  const game = vm.createContext({
+    bird,
+    activity,
+    document: { createElement: element },
+    showBirdPhoto: (item, container) => requests.push({ item, container }),
+    choiceOptions: () => [bird],
+    makeButton: () => element("button")
+  });
+  vm.runInContext("let round = [bird], index = 0;\n" + photoHelper + html.slice(renderStart, renderEnd), game);
+  game.renderChoice();
+  assert.equal(activity.children[0].textContent, "Wróbel");
+  assert.equal(activity.children[1].className, "photo-status");
+  assert.equal(activity.children[2].className, "answers");
+  assert.equal(requests.length, 1);
+  assert.equal(requests[0].item, bird);
+  assert.equal(requests[0].container, activity.children[1]);
 });
 
 test("does not display images without license information", async () => {

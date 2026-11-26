@@ -8,13 +8,17 @@ Open `index.html` in a browser and choose a difficulty. Keep `birds.js` alongsid
 
 The catalog in `birds.js` is adapted from [Ptaki Polski](https://pl.wikipedia.org/w/index.php?title=Ptaki_Polski&oldid=80130065) and [List of birds of Poland](https://en.wikipedia.org/w/index.php?title=List_of_birds_of_Poland&oldid=1377457040), by Wikipedia contributors, under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). The lists were joined by scientific name; renamed species were matched using their species articles, and the urban pigeon uses its parent species' scientific name for photo lookup. The catalog is a static snapshot and does not update automatically.
 
+Choose one or more status categories to play with birds matching any selected category, or leave all categories unchecked to include every bird. The catalog retains Wikipedia's original Polish status description and maps it to breeding, migrating or wintering, rare visitor, exceptional visitor, historical, and captive origin. A bird can belong to multiple categories; formerly breeding birds are historical rather than current breeders, and extinct or exclusively historical records are historical. The source's uncertain statuses remain approximate classifications.
+
+Selections with fewer than five birds produce shorter rounds. In Pick a translation, choices come from the selected birds where possible; birds outside the selection are used as distractors when necessary to provide four choices.
+
 The legacy eBird Worker files remain in the repository but are no longer used by the game. Existing deployed Workers are not removed automatically.
 
 On a phone, use Connect by tapping a Polish name and then its English translation; dragging is optional.
 
 Next and practice buttons appear inside the game panel on desktop and stay fixed near the bottom of the screen on mobile. **Choose difficulty** sits below the title.
 
-In Starter show, the game looks up a photo by scientific name through Wikipedia and Wikimedia Commons as soon as the bird appears, before revealing the translation. A credit and license link appear with the photo. The photo illustrates the species; if a photo or its credit information is unavailable, the game continues without it.
+In Starter show and Pick a translation, the game looks up a photo by scientific name through Wikipedia and Wikimedia Commons as soon as the bird appears. A credit and license link appear with the photo. The photo illustrates the species; if a photo or its credit information is unavailable, the game continues without it.
 
 All modes show an approximate British English IPA guide and a **Listen** button once the English name is available without giving away the answer. The IPA in `birds.js` was generated with eSpeak NG and may not be exact. Audio uses the browser's speech synthesis with a British English voice installed on the device; the game reports when speech or a suitable voice is unavailable.
 
@@ -24,7 +28,7 @@ In Pick a translation, the other choices preferentially come from the correct bi
 
 After a multiple-choice, Connect, or typing round with mistakes, **Fix mistakes** starts a new round containing only the missed birds. In Connect, a mismatched Polish name is recorded even if it is later matched correctly; in typing, “Almost” also counts as a mistake. Each practice round has its own score and can be retried again if needed.
 
-After a round, **Keep playing** continues the same difficulty without a limit, drawing from the built-in bird list. Connect continues in groups of five pairs. During continuous play, **Fix mistakes** pauses the current game for a practice round and then resumes it; birds missed again remain available for further practice. **Start over** clears the score and mistakes and begins a new continuous session.
+After a round, **Keep playing** continues the same difficulty without a limit, drawing from the selected birds. Connect continues in groups of up to five pairs. During continuous play in Pick a translation, Connect, and Type it in, **Fix mistakes** pauses the current game for a practice round and then resumes it; birds missed again remain available for further practice. **Start over** clears the score and mistakes and begins a new continuous session.
 
 The interface uses the locally bundled [Inter font](https://github.com/rsms/inter), licensed under the [SIL Open Font License](./fonts/Inter-LICENSE.txt).
 
