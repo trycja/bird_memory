@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="bird-progress-api" content="">
   <title>Bird Words — Memory Game</title>
   <style>
     @font-face {
@@ -84,6 +85,21 @@
     h1 a { color: inherit; text-decoration: none; }
     h1 a:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
     .status-filter { margin: 1rem 0 1.5rem; padding: 1rem; border: 1px solid #c9e8e640; border-radius: .85rem; }
+    .header-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem; }
+    .profile { margin-left: auto; max-width: 100%; }
+    #profile-form { display: flex; align-items: center; gap: .5rem; }
+    #profile-name { width: 10rem; flex: 1; }
+    #profile-form button { padding: .45rem .7rem; font-size: .85rem; }
+    #profile-name, #profile-form button { border-radius: .75rem; color: #fff; background: rgb(28 48 56 / 20%); }
+    #profile-name::placeholder { color: #fff; opacity: 1; }
+    #profile-form button:not(:disabled):hover { background: rgb(48 93 72 / 20%); }
+    #profile-form button:not(:disabled):active { background: rgb(68 116 91 / 20%); }
+    #profile-status { margin: .5rem 0 0; font-size: .75rem; color: #cbd0da; text-align: right; }
+    #profile-status:empty { display: none; }
+    .profile-progress { margin-top: .5rem; font-size: .85rem; }
+    .profile-progress > summary { text-align: right; cursor: pointer; }
+    .profile-progress ul { padding-left: 1.5rem; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
     .status-filter legend { padding: 0 .4rem; font-weight: 700; }
     .status-filter p { margin: .35rem 0 .75rem; color: #cbd0da; }
     .status-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .25rem .75rem; }
@@ -288,13 +304,33 @@
 <body>
   <main>
     <header>
-      <h1><a href="index.html" aria-label="Bird Words — restart page">Bird Words</a></h1>
+      <div class="header-row">
+        <h1><a href="index.html" aria-label="Bird Words — restart page">Bird Words</a></h1>
+        <div class="profile">
+          <form id="profile-form">
+            <label class="sr-only" for="profile-name">Profile name</label>
+            <input id="profile-name" type="text" placeholder="Your name" maxlength="40" autocomplete="off" aria-describedby="profile-note" required>
+            <button class="secondary" type="submit">Go</button>
+            <button class="secondary" id="profile-guest" type="button">Guest</button>
+          </form>
+          <span id="profile-note" class="sr-only">Public profile: anyone using this name can see and change its progress. Avoid personal names.</span>
+        </div>
+      </div>
+      <details class="profile-progress">
+        <summary>Progress</summary>
+        <p id="profile-summary"></p>
+        <details id="profile-details" hidden>
+          <summary>Bird statistics</summary>
+          <ul id="profile-birds"></ul>
+        </details>
+      </details>
       <button class="secondary hidden" id="home-button" type="button">
         <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
           <path d="M4 6h16M4 12h16M4 18h16"></path>
         </svg>
         Choose difficulty
       </button>
+      <p id="profile-status" role="status" aria-live="polite"></p>
     </header>
     <section id="home" aria-labelledby="choose-title">
       <h2 id="choose-title">Choose a difficulty</h2>
@@ -337,6 +373,7 @@
     </footer>
   </main>
   <script src="birds.js"></script>
+  <script src="progress.js"></script>
   <script>
     const modes = [
       "Starter show",
@@ -476,6 +513,7 @@
         return;
       }
       mode = selectedMode;
+      saveProgressSettings();
       continuous = mode === 0;
       practicing = false;
       completedBirds = 0;
@@ -599,6 +637,8 @@
       answered = false;
       updateContinuousActions();
       updateProgress();
+      const displayedBirds = mode === 2 ? round : [round[index]];
+      for (const bird of displayedBirds) recordProgress("seen", bird);
       if (mode === 0) renderShow();
       if (mode === 1) renderChoice();
       if (mode === 2) renderConnect();
@@ -872,6 +912,7 @@
           if (answered) return;
           answered = true;
           const isCorrect = option === bird;
+          recordProgress(isCorrect ? "correct" : "mistake", bird);
           if (isCorrect) correctCount++;
           else mistakes.add(bird);
           message.classList.add(isCorrect ? "correct" : "wrong");
@@ -947,6 +988,7 @@
     function connectPair(source, target) {
       if (matched.has(source) || matched.has(target)) return;
       if (source !== target) {
+        recordProgress("mistake", source);
         mistakes.add(source);
         updateContinuousActions();
         selectedSource = null;
@@ -956,6 +998,7 @@
         return;
       }
       matched.add(source);
+      recordProgress("correct", source);
       correctCount++;
       selectedSource = null;
       const items = activity.querySelectorAll(".connect-item");
@@ -1075,6 +1118,7 @@
           }
         }
         answered = true;
+        recordProgress(result === "correct" ? "correct" : "mistake", bird);
         if (result === "correct") correctCount++;
         else mistakes.add(bird);
         updateContinuousActions();
@@ -1131,10 +1175,32 @@
       clearPronunciation();
     }
 
-    statusInputs.forEach(input => input.addEventListener("change", updateStatusFilter));
+    const sharedProgress = createSharedProgress({
+      birds,
+      onSettings(settings) {
+        if (!game.classList.contains("hidden")) return;
+        mode = settings.mode;
+        statusInputs.forEach(input => { input.checked = settings.statuses.includes(input.value); });
+        updateStatusFilter();
+      }
+    });
+    function recordProgress(kind, bird) {
+      sharedProgress.record(kind, bird.id);
+    }
+    function saveProgressSettings() {
+      sharedProgress.saveSettings({
+        mode,
+        statuses: statusInputs.filter(input => input.checked).map(input => input.value)
+      });
+    }
+    statusInputs.forEach(input => input.addEventListener("change", () => {
+      updateStatusFilter();
+      saveProgressSettings();
+    }));
     clearStatusFilter.addEventListener("click", () => {
       statusInputs.forEach(input => { input.checked = false; });
       updateStatusFilter();
+      saveProgressSettings();
     });
     updateStatusFilter();
     difficultyButtons.forEach(button => {

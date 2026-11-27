@@ -8,10 +8,10 @@ const birds = vm.runInNewContext(source + "\nbirds");
 
 test("the complete catalog has unique bilingual names, scientific names and families", () => {
   assert.equal(birds.length, 475);
-  for (const field of ["en", "pl", "scientificName", "family", "pronunciation"]) {
+  for (const field of ["id", "en", "pl", "scientificName", "family", "pronunciation"]) {
     assert.ok(birds.every(bird => typeof bird[field] === "string" && bird[field].trim()));
   }
-  for (const field of ["en", "pl", "scientificName"]) {
+  for (const field of ["id", "en", "pl", "scientificName"]) {
     assert.equal(new Set(birds.map(bird => bird[field].toLocaleLowerCase())).size, birds.length);
   }
 });

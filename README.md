@@ -34,10 +34,29 @@ After a multiple-choice, Connect, or typing round with mistakes, **Fix mistakes*
 
 After a round in Pick a translation, Connect, or Type it in, **Keep playing** continues the same difficulty without a limit, drawing from the selected birds. Connect continues in groups of up to five pairs. During continuous play in these modes, **Fix mistakes** pauses the current game for a practice round and then resumes it; birds missed again remain available for further practice. **Start over** clears the score and mistakes and begins a new continuous session.
 
+## Shared progress
+
+Enter a profile name in the top-right field and select **Go** (or press Enter) to keep per-bird seen, correct, and mistake counts, the status filter, and the last difficulty across sessions and devices. Select **Guest** to play without recording progress, or expand **Progress** to see statistics. Names are trimmed, normalized and case-insensitive. Anyone who enters a profile name can see and change its progress; do not use a personal or sensitive name.
+
+A bird is counted as seen when shown, including each bird in a Connect group. Multiple-choice and typing answers record a correct or mistake; an “Almost” counts as a mistake. Each Connect attempt records a correct match or mistake for the selected Polish bird. Starter show records views, not correct answers. Statistics do not resume an interrupted round, and Start over resets the current session rather than the profile's totals.
+
+The browser stores pending events in IndexedDB and retries when connectivity returns and periodically while the page is open. Retried events are deduplicated by the server. Until synchronization succeeds, changes are available only on that device; clearing browser storage or using private browsing can remove unsynced changes. Settings use the latest device timestamp, so device clocks should be accurate. Profile data is public and the Worker has no authentication; configure Cloudflare rate limiting and monitor D1 usage if deploying publicly.
+
+### Deploying the progress service
+
+Cross-device sync requires a Cloudflare account, a D1 database, and a deployed Worker. Until configured, profiles and pending changes remain on the current device and the game displays a configuration message.
+
+1. Create a database with `npx wrangler d1 create bird-words-progress`. Copy its database ID into `database_id` in `wrangler.progress.jsonc`.
+2. Set `ALLOWED_ORIGINS` in `wrangler.progress.jsonc` to the exact origin of the hosted game. For local testing, add the local server origin as a comma-separated value; CORS is not authentication.
+3. Initialize the database with `npx wrangler d1 execute bird-words-progress --remote --file=progress-schema.sql --config=wrangler.progress.jsonc`.
+4. Deploy with `npx wrangler deploy --config wrangler.progress.jsonc`, then set the `bird-progress-api` meta tag in `index.html` to the deployed Worker URL ending in `/progress`. Redeploy the static site.
+
+The progress Worker is separate from the legacy eBird Worker. For local cross-device testing, serve the page from an allowed HTTP origin such as `http://localhost:8000` and configure that origin on the Worker; opening the page directly as `file:` does not use that HTTP origin. Maintain the explicit `id` field of existing entries in `birds.js` even if bird names or scientific classifications change.
+
 The interface uses the locally bundled [Inter font](https://github.com/rsms/inter), licensed under the [SIL Open Font License](./fonts/Inter-LICENSE.txt).
 
 The background image is stored locally in `assets/background.jpg`.
 
 ## Tests
 
-Run the Worker and game tests with `node --test tests/*.test.mjs`. They use Node's built-in test runner and do not require external packages.
+Run the Worker and game tests with `node --test tests/*.test.mjs`. They use Node's built-in test runner and do not require external packages. The progress Worker database tests require Node 22.13 or later with built-in SQLite; older versions skip those tests.

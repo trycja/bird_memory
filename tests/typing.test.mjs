@@ -32,6 +32,7 @@ test("classifies unrelated, multiple-error and blank answers as wrong", () => {
 
 function setupTypingGame(coarsePointer = false, bird = { en: "Great Tit", pl: "Bogatka" }, random = 0.5) {
   const pronounced = [];
+  const recorded = [];
   function element(tagName) {
     return {
       tagName,
@@ -63,6 +64,7 @@ function setupTypingGame(coarsePointer = false, bird = { en: "Great Tit", pl: "B
       return button;
     },
     showNextButton() {},
+    recordProgress(kind, item) { recorded.push([kind, item.en]); },
     showPronunciation(bird) { pronounced.push(bird.en); },
     updateContinuousActions() {}
   });
@@ -74,7 +76,7 @@ function setupTypingGame(coarsePointer = false, bird = { en: "Great Tit", pl: "B
     game
   );
   game.renderTyping();
-  return { game, activity, pronounced };
+  return { game, activity, pronounced, recorded };
 }
 
 test("does not reveal the English answer's pronunciation before submission", () => {
@@ -149,12 +151,13 @@ test("accepts English names without Eurasian and still flags typos", () => {
 });
 
 test("records an almost answer for mistake practice", () => {
-  const { game, activity } = setupTypingGame();
+  const { game, activity, recorded } = setupTypingGame();
   const form = activity.children[1];
   form.children[0].value = "great ti";
   form.listeners.submit({ preventDefault() {} });
   assert.match(game.message.textContent, /^Almost:/);
   assert.equal(vm.runInContext("mistakes.size", game), 1);
+  assert.deepEqual(recorded, [["mistake", "Great Tit"]]);
 });
 
 test("does not automatically focus the typing field on a coarse pointer device", () => {

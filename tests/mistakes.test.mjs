@@ -46,6 +46,7 @@ function makeButton(text, className, handler) {
 
 function setupRounds() {
   const pronunciation = element();
+  const recorded = [];
   const game = vm.createContext({
     modes: ["starter", "choice"],
     modeTitle: element(),
@@ -60,6 +61,8 @@ function setupRounds() {
     message: element(),
     shuffle: items => [...items],
     makeButton,
+    saveProgressSettings() {},
+    recordProgress(kind, bird) { recorded.push([kind, bird.en]); },
     clearPronunciation() { pronunciation.replaceChildren(); },
     showHome() {},
     renderChoice() {},
@@ -77,8 +80,17 @@ function setupRounds() {
     game
   );
   vm.runInContext(extract("nextQuestion", "function showHome("), game);
+  game.recorded = recorded;
   return game;
 }
+
+test("records each newly displayed bird as seen", () => {
+  const game = setupRounds();
+  game.startMode(0);
+  vm.runInContext("answered = true", game);
+  game.nextQuestion();
+  assert.deepEqual(game.recorded, [["seen", "A"], ["seen", "B"]]);
+});
 
 test("hides progress only in Starter show, including continuous play", () => {
   const game = setupRounds();
@@ -215,6 +227,7 @@ test("practice restores the interrupted continuous question and retains repeated
 
 test("records an incorrect multiple-choice answer", () => {
   const pronounced = [];
+  const recorded = [];
   const game = vm.createContext({
     activity: element(),
     controls: element(),
@@ -223,6 +236,7 @@ test("records an incorrect multiple-choice answer", () => {
     makeButton,
     shuffle: items => [...items],
     createBirdPhoto: () => element(),
+    recordProgress(kind, bird) { recorded.push([kind, bird.en]); },
     showNextButton() {},
     showPronunciation(bird) {
       pronounced.push(bird.en);
@@ -249,15 +263,18 @@ test("records an incorrect multiple-choice answer", () => {
   game.renderChoice();
   game.activity.children[5].children[0].click();
   assert.equal(game.message.classList.contains("correct"), true);
+  assert.deepEqual(recorded, [["mistake", "A"], ["correct", "A"]]);
 });
 
 test("records the selected Polish bird once when a Connect match is wrong", () => {
   const pronounced = [];
+  const recorded = [];
   const game = vm.createContext({
     activity: element(),
     message: element(),
     updateProgress() {},
     finishRound() {},
+    recordProgress(kind, bird) { recorded.push([kind, bird.pl]); },
     showPronunciation(bird) { pronounced.push(bird.en); },
     updateContinuousActions() {},
     inContinuousPlay: () => false
@@ -277,6 +294,7 @@ test("records the selected Polish bird once when a Connect match is wrong", () =
   assert.deepEqual(pronounced, ["A"]);
   vm.runInContext("connectPair(round[0], round[0]); connectPair(round[1], round[1]);", game);
   assert.deepEqual(pronounced, ["A", "B"]);
+  assert.deepEqual(recorded, [["mistake", "A"], ["mistake", "A"], ["correct", "A"], ["correct", "B"]]);
 });
 
 test("completing a continuous Connect group offers the next group", () => {
@@ -286,6 +304,7 @@ test("completing a continuous Connect group offers the next group", () => {
     controls: element(),
     message: element(),
     makeButton,
+    recordProgress() {},
     showPronunciation() {},
     updateProgress() {},
     updateContinuousActions() {},
