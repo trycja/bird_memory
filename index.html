@@ -773,7 +773,7 @@
         source.href = sourceUrl.href;
         source.target = "_blank";
         source.rel = "noopener noreferrer";
-        source.textContent = file.title.replace(/^File:/, "");
+        source.textContent = "Wikimedia Commons";
         const licenseLink = document.createElement("a");
         licenseLink.href = licenseLinkUrl.href;
         licenseLink.target = "_blank";
@@ -855,9 +855,18 @@
       prompt.lang = "pl";
       prompt.textContent = bird.pl;
       activity.append(prompt, createBirdPhoto(bird));
+      const pronunciationGuide = showPronunciation(bird);
+      pronunciationGuide.classList.add("reserved-answer");
+      pronunciationGuide.setAttribute("aria-hidden", "true");
+      const nextPlaceholder = makeButton("Next bird", "primary", () => {});
+      nextPlaceholder.classList.add("reserved-answer");
+      nextPlaceholder.setAttribute("aria-hidden", "true");
+      nextPlaceholder.disabled = true;
+      controls.replaceChildren(nextPlaceholder);
       const options = choiceOptions(bird);
       const answers = document.createElement("div");
       answers.className = "answers";
+      const optionTitles = new Map();
       for (const option of options) {
         const button = makeButton(option.en, "answer", () => {
           if (answered) return;
@@ -869,11 +878,17 @@
           updateContinuousActions();
           button.classList.add(isCorrect ? "correct" : "incorrect");
           for (const choice of answers.children) choice.disabled = true;
+          for (const choice of answers.children) {
+            const choiceOption = optionTitles.get(choice);
+            if (choiceOption) choice.setAttribute("title", choiceOption.pl);
+          }
           message.textContent = isCorrect ? "Correct!" : `Not quite. The answer is ${bird.en}.`;
-          showPronunciation(bird);
+          pronunciationGuide.classList.remove("reserved-answer");
+          pronunciationGuide.removeAttribute("aria-hidden");
           showNextButton();
         });
         button.lang = "en";
+        optionTitles.set(button, option);
         answers.append(button);
       }
       activity.append(answers);
@@ -1053,8 +1068,8 @@
         event.preventDefault();
         if (answered) return;
         let result = typingResult(input.value, bird[answerLanguage]);
-        if (answerLanguage === "en" && /^common\s+/i.test(bird.en)) {
-          const shorterResult = typingResult(input.value, bird.en.replace(/^common\s+/i, ""));
+        if (answerLanguage === "en" && /^(?:common|eurasian)\s+/i.test(bird.en)) {
+          const shorterResult = typingResult(input.value, bird.en.replace(/^(?:common|eurasian)\s+/i, ""));
           if (shorterResult === "correct" || (result === "wrong" && shorterResult === "almost")) {
             result = shorterResult;
           }

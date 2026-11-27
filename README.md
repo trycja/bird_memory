@@ -26,7 +26,7 @@ Starter show continues indefinitely, drawing batches of birds from the selected 
 
 All modes show an approximate British English IPA guide and a speaker icon to play the pronunciation once the English name is available without giving away the answer. The IPA in `birds.js` was generated with eSpeak NG and may not be exact. Audio uses the browser's speech synthesis with a British English voice installed on the device; the game reports when speech or a suitable voice is unavailable.
 
-In Type it in, answers are case-insensitive and the word “Common” may be omitted from the start of an English name. A single missing, extra, substituted, or swapped adjacent character is marked “Almost”; only exact answers, including the accepted shorter names, count as correct. **Show letter** reveals one letter at a time in a separate hint without affecting the score.
+In Type it in, answers are case-insensitive and the words “Common” or “Eurasian” may be omitted from the start of an English name. A single missing, extra, substituted, or swapped adjacent character is marked “Almost”; only exact answers, including the accepted shorter names, count as correct. **Show letter** reveals one letter at a time in a separate hint without affecting the score.
 
 In Pick a translation, the other choices preferentially come from the correct bird's family. If there are not enough, other birds fill the remaining choices.
 

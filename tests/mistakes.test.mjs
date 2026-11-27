@@ -16,6 +16,7 @@ function element() {
   const classes = new Set();
   return {
     children: [],
+    attributes: {},
     classList: {
       add(name) { classes.add(name); },
       remove(name) { classes.delete(name); },
@@ -29,7 +30,8 @@ function element() {
     append(...items) { this.children.push(...items); },
     replaceChildren(...items) { this.children = items; },
     addEventListener(type, handler) { this[type] = handler; },
-    setAttribute() {},
+    setAttribute(name, value) { this.attributes[name] = value; },
+    removeAttribute(name) { delete this.attributes[name]; },
     querySelector() { return null; },
     querySelectorAll() { return []; }
   };
@@ -215,13 +217,17 @@ test("records an incorrect multiple-choice answer", () => {
   const pronounced = [];
   const game = vm.createContext({
     activity: element(),
+    controls: element(),
     message: element(),
     document: { createElement: element },
     makeButton,
     shuffle: items => [...items],
     createBirdPhoto: () => element(),
     showNextButton() {},
-    showPronunciation(bird) { pronounced.push(bird.en); },
+    showPronunciation(bird) {
+      pronounced.push(bird.en);
+      return element();
+    },
     updateContinuousActions() {}
   });
   vm.runInContext(
@@ -232,9 +238,11 @@ test("records an incorrect multiple-choice answer", () => {
     game
   );
   game.renderChoice();
-  assert.equal(pronounced.length, 0);
+  assert.equal(pronounced.length, 1);
   game.activity.children[2].children[1].click();
   assert.deepEqual(pronounced, ["A"]);
+  assert.equal(game.activity.children[2].children[0].attributes.title, "A");
+  assert.equal(game.activity.children[2].children[1].attributes.title, "B");
   assert.equal(vm.runInContext("mistakes.has(round[0])", game), true);
   assert.equal(game.message.classList.contains("correct"), false);
   vm.runInContext("answered = false;", game);

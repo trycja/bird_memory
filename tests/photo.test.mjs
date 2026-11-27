@@ -87,6 +87,7 @@ test("looks up the scientific name and displays the photo with attribution", asy
   assert.equal(figure.children[0].alt, "Zdjęcie: Wróbel");
   assert.equal(figure.children[0].lang, "pl");
   const caption = figure.children[1].children;
+  assert.equal(caption[0].textContent, "Wikimedia Commons");
   assert.match(caption[1].textContent, /Example author/);
   assert.equal(caption[2].href, "https://creativecommons.org/licenses/by/4.0/");
 });
@@ -167,7 +168,9 @@ test("shows the current bird's photo between the Polish name and translation cho
     document: { createElement: element },
     showBirdPhoto: (item, container) => requests.push({ item, container }),
     choiceOptions: () => [bird],
-    makeButton: () => element("button")
+    makeButton: () => element("button"),
+    controls: element("div"),
+    showPronunciation: () => element("div")
   });
   vm.runInContext("let round = [bird], index = 0;\n" + photoHelper + html.slice(renderStart, renderEnd), game);
   game.renderChoice();

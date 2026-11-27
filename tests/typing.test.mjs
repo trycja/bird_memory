@@ -130,6 +130,24 @@ test("accepts English names without Common and still flags typos", () => {
   }
 });
 
+test("accepts English names without Eurasian and still flags typos", () => {
+  const bird = { en: "Eurasian Curlew", pl: "Kulik wielki" };
+  for (const [input, expected, score] of [
+    ["curlew", "Correct!", 1],
+    [" eurASian curlew ", "Correct!", 1],
+    ["curle", "Almost:", 0],
+    ["eurasian", "Wrong!", 0]
+  ]) {
+    const { game, activity } = setupTypingGame(false, bird);
+    const form = activity.children[1];
+    form.children[0].value = input;
+    form.listeners.submit({ preventDefault() {} });
+    assert.ok(game.message.textContent.startsWith(expected), input);
+    assert.equal(vm.runInContext("correctCount", game), score, input);
+    assert.equal(vm.runInContext("mistakes.size", game), score ? 0 : 1, input);
+  }
+});
+
 test("records an almost answer for mistake practice", () => {
   const { game, activity } = setupTypingGame();
   const form = activity.children[1];
